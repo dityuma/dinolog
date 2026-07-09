@@ -20,18 +20,31 @@ import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddFeedingLogScreen(
+fun EditFeedingLogScreen(
     reptileId: Long,
+    logId: Long,
     repository: DinoLogRepository,
     onNavigateBack: () -> Unit,
     viewModel: ReptileDetailViewModel = viewModel(
         factory = ReptileDetailViewModelFactory(repository, reptileId)
     )
 ) {
-    var feedingDate by remember { mutableStateOf(System.currentTimeMillis()) }
+    val feedingLogs by viewModel.feedingLogs.collectAsState()
+    val log = feedingLogs.find { it.id == logId }
+
+    var feedingDate by remember { mutableLongStateOf(System.currentTimeMillis()) }
     var foodType by remember { mutableStateOf("") }
     var foodAmount by remember { mutableStateOf("") }
     var notes by remember { mutableStateOf("") }
+
+    LaunchedEffect(log) {
+        log?.let {
+            feedingDate = it.feedingDate
+            foodType = it.foodType
+            foodAmount = it.foodAmount
+            notes = it.notes
+        }
+    }
 
     var showDatePicker by remember { mutableStateOf(false) }
     val foodSuggestions = listOf(
@@ -43,7 +56,7 @@ fun AddFeedingLogScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Tambah Catatan Makan") },
+                title = { Text("Edit Catatan Makan") },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Kembali")
@@ -124,22 +137,23 @@ fun AddFeedingLogScreen(
 
             Button(
                 onClick = {
-                    viewModel.addFeedingLog(
-                        FeedingLogEntity(
-                            reptileId = reptileId,
-                            feedingDate = feedingDate,
-                            foodType = foodType,
-                            foodAmount = foodAmount,
-                            accepted = true,
-                            notes = notes
+                    log?.let { current ->
+                        viewModel.updateFeedingLog(
+                            current.copy(
+                                feedingDate = feedingDate,
+                                foodType = foodType,
+                                foodAmount = foodAmount,
+                                notes = notes,
+                                accepted = true
+                            )
                         )
-                    )
-                    onNavigateBack()
+                        onNavigateBack()
+                    }
                 },
                 modifier = Modifier.fillMaxWidth(),
                 enabled = foodType.isNotBlank()
             ) {
-                Text("Simpan")
+                Text("Simpan Perubahan")
             }
         }
     }

@@ -10,6 +10,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -53,6 +54,7 @@ fun ReptileDetailScreen(
     onNavigateToAddGrowth: (Long) -> Unit,
     onNavigateToEditGrowth: (Long, Long) -> Unit,
     onNavigateToAddFeeding: (Long) -> Unit,
+    onNavigateToEditFeeding: (Long, Long) -> Unit,
     onNavigateToAddScute: (Long) -> Unit,
     onNavigateToAddHealth: (Long) -> Unit,
     onNavigateToAddSoaking: (Long) -> Unit,
@@ -152,7 +154,9 @@ fun ReptileDetailScreen(
                 0 -> GrowthTab(growthLogs, weightHistory, lengthHistory) { logId ->
                     onNavigateToEditGrowth(reptileId, logId)
                 }
-                1 -> FeedingTab(feedingLogs)
+                1 -> FeedingTab(feedingLogs) { logId ->
+                    onNavigateToEditFeeding(reptileId, logId)
+                }
                 2 -> ScuteTab(scuteLogs)
                 3 -> HealthTab(healthRecords)
                 4 -> CareTab(
@@ -405,7 +409,34 @@ fun GrowthTab(
 }
 
 @Composable
-fun FeedingTab(logs: List<FeedingLogEntity>) {
+fun FeedingTab(logs: List<FeedingLogEntity>, onEditLog: (Long) -> Unit) {
+    if (logs.isEmpty()) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Icon(
+                Icons.Default.Restaurant,
+                contentDescription = null,
+                modifier = Modifier.size(64.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+            )
+            Spacer(Modifier.height(16.dp))
+            Text(
+                "Belum ada catatan makan",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(
+                "Ketuk + untuk menambahkan catatan makan pertama",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+            )
+        }
+        return
+    }
+
     val dateFormatter = remember { SimpleDateFormat("dd MMM yyyy", Locale.getDefault()) }
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -413,28 +444,30 @@ fun FeedingTab(logs: List<FeedingLogEntity>) {
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         items(logs) { log ->
-            val color = if (!log.accepted) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.surface
             Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = color)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onEditLog(log.id) }
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(text = dateFormatter.format(Date(log.feedingDate)), style = MaterialTheme.typography.labelMedium)
-                    Text(text = log.foodType, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        if (log.foodAmount.isNotEmpty()) Text(text = log.foodAmount)
-                        Text(
-                            text = if (log.accepted) "Dimakan" else "Ditolak",
-                            color = if (log.accepted) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
-                        )
-                    }
-                    if (!log.accepted) {
-                        Text(
-                            text = "Reptil menolak makan — perhatikan kondisinya",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.error,
-                            modifier = Modifier.padding(top = 4.dp)
-                        )
+                Box(modifier = Modifier.padding(16.dp)) {
+                    Icon(
+                        Icons.Default.Edit,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(18.dp)
+                            .align(Alignment.TopEnd),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Column {
+                        Text(text = dateFormatter.format(Date(log.feedingDate)), style = MaterialTheme.typography.labelMedium)
+                        Text(text = log.foodType, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                        if (log.foodAmount.isNotEmpty()) {
+                            Text(text = log.foodAmount, style = MaterialTheme.typography.bodyMedium)
+                        }
+                        if (log.notes.isNotEmpty()) {
+                            Spacer(Modifier.height(4.dp))
+                            Text(text = log.notes, style = MaterialTheme.typography.bodySmall)
+                        }
                     }
                 }
             }

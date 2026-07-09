@@ -28,6 +28,9 @@ sealed class Screen(val route: String) {
     object AddFeedingLog : Screen("add_feeding_log/{reptileId}") {
         fun createRoute(reptileId: Long) = "add_feeding_log/$reptileId"
     }
+    object EditFeedingLog : Screen("edit_feeding_log/{reptileId}/{logId}") {
+        fun createRoute(reptileId: Long, logId: Long) = "edit_feeding_log/$reptileId/$logId"
+    }
     object AddScuteLog : Screen("add_scute_log/{reptileId}") {
         fun createRoute(reptileId: Long) = "add_scute_log/$reptileId"
     }
@@ -90,6 +93,7 @@ fun NavGraph(
                 onNavigateToAddGrowth = { id -> navController.navigate(Screen.AddGrowthLog.createRoute(id)) },
                 onNavigateToEditGrowth = { rid, lid -> navController.navigate(Screen.EditGrowthLog.createRoute(rid, lid)) },
                 onNavigateToAddFeeding = { id -> navController.navigate(Screen.AddFeedingLog.createRoute(id)) },
+                onNavigateToEditFeeding = { rid, lid -> navController.navigate(Screen.EditFeedingLog.createRoute(rid, lid)) },
                 onNavigateToAddScute = { id -> navController.navigate(Screen.AddScuteLog.createRoute(id)) },
                 onNavigateToAddHealth = { id -> navController.navigate(Screen.AddHealthRecord.createRoute(id)) },
                 onNavigateToAddSoaking = { id -> navController.navigate(Screen.AddSoakingLog.createRoute(id)) },
@@ -128,6 +132,22 @@ fun NavGraph(
             val reptileId = backStackEntry.arguments?.getLong("reptileId") ?: return@composable
             AddFeedingLogScreen(
                 reptileId = reptileId,
+                repository = repository,
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+        composable(
+            route = Screen.EditFeedingLog.route,
+            arguments = listOf(
+                navArgument("reptileId") { type = NavType.LongType },
+                navArgument("logId") { type = NavType.LongType }
+            )
+        ) { backStackEntry ->
+            val reptileId = backStackEntry.arguments?.getLong("reptileId") ?: return@composable
+            val logId = backStackEntry.arguments?.getLong("logId") ?: return@composable
+            EditFeedingLogScreen(
+                reptileId = reptileId,
+                logId = logId,
                 repository = repository,
                 onNavigateBack = { navController.popBackStack() }
             )

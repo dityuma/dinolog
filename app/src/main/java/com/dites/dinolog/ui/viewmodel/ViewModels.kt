@@ -99,6 +99,10 @@ class ReptileDetailViewModel(
         repository.addFeedingLog(feeding)
     }
 
+    fun updateFeedingLog(feeding: FeedingLogEntity) = viewModelScope.launch {
+        repository.updateFeedingLog(feeding)
+    }
+
     fun deleteFeedingLog(feeding: FeedingLogEntity) = viewModelScope.launch {
         repository.deleteFeedingLog(feeding)
     }
