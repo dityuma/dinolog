@@ -92,11 +92,6 @@ fun ReptileDetailScreen(
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Kembali")
                     }
-                },
-                actions = {
-                    IconButton(onClick = { onNavigateToEditReptile(reptileId) }) {
-                        Icon(Icons.Default.Edit, contentDescription = "Edit")
-                    }
                 }
             )
         },
@@ -138,7 +133,8 @@ fun ReptileDetailScreen(
                     growthLogs.size,
                     latestWeight,
                     latestLength,
-                    onPhotoClick = { if (r.profilePhotoUri.isNotEmpty()) showPhotoPreview = true }
+                    onPhotoClick = { if (r.profilePhotoUri.isNotEmpty()) showPhotoPreview = true },
+                    onEditClick = { onNavigateToEditReptile(reptileId) }
                 )
             }
 
@@ -200,62 +196,73 @@ fun ReptileHeader(
     logCount: Int,
     latestWeight: Float?,
     latestLength: Float?,
-    onPhotoClick: () -> Unit
+    onPhotoClick: () -> Unit,
+    onEditClick: () -> Unit
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp),
+            .padding(16.dp)
+            .clickable { onEditClick() },
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                AsyncImage(
-                    model = reptile.profilePhotoUri.takeIf { it.isNotEmpty() },
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(80.dp)
-                        .clip(CircleShape)
-                        .clickable { onPhotoClick() },
-                    contentScale = ContentScale.Crop
-                )
-                Spacer(modifier = Modifier.width(16.dp))
-                Column {
-                    Text(text = reptile.name, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-                    Text(text = reptile.species, style = MaterialTheme.typography.bodyLarge)
-                    val genderIndo = when(reptile.gender) {
-                        "MALE" -> "Jantan"
-                        "FEMALE" -> "Betina"
-                        else -> "Tidak Diketahui"
-                    }
-                    Text(text = "Jenis Kelamin: $genderIndo", style = MaterialTheme.typography.bodySmall)
-                    Text(text = "Umur: ${calculateDuration(reptile.birthDate)}", style = MaterialTheme.typography.bodySmall)
-                    
-                    reptile.acquireDate?.let { date ->
-                        val acquireFormatter = remember { SimpleDateFormat("dd MMM yyyy", Locale("id", "ID")) }
-                        Text(
-                            text = "Adopsi: ${acquireFormatter.format(Date(date))} (${calculateDuration(date)})",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
-                        )
+        Box(modifier = Modifier.padding(16.dp)) {
+            Icon(
+                Icons.Default.Edit,
+                contentDescription = null,
+                modifier = Modifier
+                    .size(18.dp)
+                    .align(Alignment.TopEnd),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Column {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    AsyncImage(
+                        model = reptile.profilePhotoUri.takeIf { it.isNotEmpty() },
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(80.dp)
+                            .clip(CircleShape)
+                            .clickable { onPhotoClick() },
+                        contentScale = ContentScale.Crop
+                    )
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Column {
+                        Text(text = reptile.name, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+                        Text(text = reptile.species, style = MaterialTheme.typography.bodyLarge)
+                        val genderIndo = when(reptile.gender) {
+                            "MALE" -> "Jantan"
+                            "FEMALE" -> "Betina"
+                            else -> "Tidak Diketahui"
+                        }
+                        Text(text = "Jenis Kelamin: $genderIndo", style = MaterialTheme.typography.bodySmall)
+                        Text(text = "Umur: ${calculateDuration(reptile.birthDate)}", style = MaterialTheme.typography.bodySmall)
+                        
+                        reptile.acquireDate?.let { date ->
+                            val acquireFormatter = remember { SimpleDateFormat("dd MMM yyyy", Locale("id", "ID")) }
+                            Text(
+                                text = "Adopsi: ${acquireFormatter.format(Date(date))} (${calculateDuration(date)})",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
+                            )
+                        }
                     }
                 }
-            }
-            Spacer(modifier = Modifier.height(16.dp))
-            HorizontalDivider()
-            Spacer(modifier = Modifier.height(8.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                StatItem(label = "Total Catatan", value = logCount.toString())
-                StatItem(label = "Berat Terkini", value = latestWeight?.let { "${it} gram" } ?: "-")
-                StatItem(label = "Panjang Terkini", value = latestLength?.let { "${it} cm" } ?: "-")
+                Spacer(modifier = Modifier.height(16.dp))
+                HorizontalDivider()
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    StatItem(label = "Total Catatan", value = logCount.toString())
+                    StatItem(label = "Berat Terkini", value = latestWeight?.let { "${it} gram" } ?: "-")
+                    StatItem(label = "Panjang Terkini", value = latestLength?.let { "${it} cm" } ?: "-")
+                }
             }
         }
     }
 }
-
 @Composable
 fun StatItem(label: String, value: String) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -358,12 +365,21 @@ fun GrowthTab(
         }
 
         items(logs) { log ->
-            Card(modifier = Modifier.fillMaxWidth()) {
-                Row(
-                    modifier = Modifier.padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onEditLog(log.id) }
+            ) {
+                Box(modifier = Modifier.padding(16.dp)) {
+                    Icon(
+                        Icons.Default.Edit,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(18.dp)
+                            .align(Alignment.TopEnd),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Column {
                         Text(text = fullDateFormatter.format(Date(log.recordedAt)), style = MaterialTheme.typography.labelMedium)
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                             log.weightGrams?.let { Text(text = "${it}g", fontWeight = FontWeight.Bold) }
@@ -381,9 +397,6 @@ fun GrowthTab(
                         if (log.notes.isNotEmpty()) {
                             Text(text = log.notes, style = MaterialTheme.typography.bodyMedium)
                         }
-                    }
-                    IconButton(onClick = { onEditLog(log.id) }) {
-                        Icon(Icons.Default.Edit, contentDescription = "Edit")
                     }
                 }
             }
