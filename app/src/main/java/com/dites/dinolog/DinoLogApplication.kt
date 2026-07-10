@@ -17,8 +17,8 @@ class DinoLogApplication : Application() {
             database.brumasiLogDao(),
             database.uvbBasingLogDao(),
             database.dietLogDao(),
-            database.sheddingLogDao(),
-            database.healthRecordDao()
+            database.healthRecordDao(),
+            database.scutePhotoDao()
         )
     }
 }

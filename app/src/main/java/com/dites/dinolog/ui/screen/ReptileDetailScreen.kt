@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
@@ -15,6 +16,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -40,8 +42,6 @@ import com.dites.dinolog.data.local.entity.*
 import com.dites.dinolog.data.repository.DinoLogRepository
 import com.dites.dinolog.ui.viewmodel.ReptileDetailViewModel
 import com.dites.dinolog.ui.viewmodel.ReptileDetailViewModelFactory
-import com.dites.dinolog.ui.viewmodel.TortoiseCareViewModel
-import com.dites.dinolog.ui.viewmodel.TortoiseCareViewModelFactory
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -57,16 +57,10 @@ fun ReptileDetailScreen(
     onNavigateToEditFeeding: (Long, Long) -> Unit,
     onNavigateToAddScute: (Long) -> Unit,
     onNavigateToAddHealth: (Long) -> Unit,
-    onNavigateToAddSoaking: (Long) -> Unit,
     onNavigateToAddBrumasi: (Long) -> Unit,
-    onNavigateToAddUvb: (Long) -> Unit,
-    onNavigateToAddDiet: (Long) -> Unit,
     onNavigateToEditReptile: (Long) -> Unit,
     viewModel: ReptileDetailViewModel = viewModel(
         factory = ReptileDetailViewModelFactory(repository, reptileId)
-    ),
-    careViewModel: TortoiseCareViewModel = viewModel(
-        factory = TortoiseCareViewModelFactory(repository, reptileId)
     )
 ) {
     val reptile by viewModel.reptile.collectAsState()
@@ -74,17 +68,13 @@ fun ReptileDetailScreen(
     val feedingLogs by viewModel.feedingLogs.collectAsState()
     val scuteLogs by viewModel.scuteLogs.collectAsState()
     val healthRecords by viewModel.healthRecords.collectAsState()
+    val brumasiLogs by viewModel.brumasiLogs.collectAsState()
     val weightHistory by viewModel.weightHistory.collectAsState()
     val lengthHistory by viewModel.lengthHistory.collectAsState()
 
-    val soakingLogs by careViewModel.soakingLogs.collectAsState()
-    val brumasiLogs by careViewModel.brumasiLogs.collectAsState()
-    val uvbLogs by careViewModel.uvbLogs.collectAsState()
-    val dietLogs by careViewModel.dietLogs.collectAsState()
-
     var selectedTabIndex by remember { mutableIntStateOf(0) }
-    var showPhotoPreview by remember { mutableStateOf(false) }
-    val tabs = listOf("Tumbuh", "Makan", "Karapas", "Kesehatan", "Perawatan", "Brumasi")
+    var previewPhotoUri by remember { mutableStateOf<String?>(null) }
+    val tabs = listOf("Tumbuh", "Makan", "Karapas", "Kesehatan", "Brumasi")
 
     Scaffold(
         topBar = {
@@ -103,22 +93,19 @@ fun ReptileDetailScreen(
                 1 -> "Tambah Catatan Makan"
                 2 -> "Tambah Kondisi Karapas"
                 3 -> "Tambah Catatan Kesehatan"
-                4 -> "Opsi Perawatan"
-                5 -> "Tambah Catatan Brumasi"
+                4 -> "Tambah Catatan Brumasi"
                 else -> "Tambah Record"
             }
-            if (selectedTabIndex != 4) { // Tab Perawatan punya button internal per section
-                FloatingActionButton(onClick = {
-                    when (selectedTabIndex) {
-                        0 -> onNavigateToAddGrowth(reptileId)
-                        1 -> onNavigateToAddFeeding(reptileId)
-                        2 -> onNavigateToAddScute(reptileId)
-                        3 -> onNavigateToAddHealth(reptileId)
-                        5 -> onNavigateToAddBrumasi(reptileId)
-                    }
-                }) {
-                    Icon(Icons.Default.Add, contentDescription = tooltip)
+            FloatingActionButton(onClick = {
+                when (selectedTabIndex) {
+                    0 -> onNavigateToAddGrowth(reptileId)
+                    1 -> onNavigateToAddFeeding(reptileId)
+                    2 -> onNavigateToAddScute(reptileId)
+                    3 -> onNavigateToAddHealth(reptileId)
+                    4 -> onNavigateToAddBrumasi(reptileId)
                 }
+            }) {
+                Icon(Icons.Default.Add, contentDescription = tooltip)
             }
         }
     ) { padding ->
@@ -135,7 +122,7 @@ fun ReptileDetailScreen(
                     growthLogs.size,
                     latestWeight,
                     latestLength,
-                    onPhotoClick = { if (r.profilePhotoUri.isNotEmpty()) showPhotoPreview = true },
+                    onPhotoClick = { if (r.profilePhotoUri.isNotEmpty()) previewPhotoUri = r.profilePhotoUri },
                     onEditClick = { onNavigateToEditReptile(reptileId) }
                 )
             }
@@ -151,40 +138,34 @@ fun ReptileDetailScreen(
             }
 
             when (selectedTabIndex) {
-                0 -> GrowthTab(growthLogs, weightHistory, lengthHistory) { logId ->
+                0 -> GrowthTab(growthLogs, weightHistory, lengthHistory, viewModel, { uri -> previewPhotoUri = uri }) { logId ->
                     onNavigateToEditGrowth(reptileId, logId)
                 }
                 1 -> FeedingTab(feedingLogs) { logId ->
                     onNavigateToEditFeeding(reptileId, logId)
                 }
-                2 -> ScuteTab(scuteLogs)
+                2 -> ScuteTab(scuteLogs, viewModel) { uri -> previewPhotoUri = uri }
                 3 -> HealthTab(healthRecords)
-                4 -> CareTab(
-                    soakingLogs, uvbLogs, dietLogs,
-                    onAddSoaking = { onNavigateToAddSoaking(reptileId) },
-                    onAddUvb = { onNavigateToAddUvb(reptileId) },
-                    onAddDiet = { onNavigateToAddDiet(reptileId) }
-                )
-                5 -> BrumasiTab(brumasiLogs)
+                4 -> BrumasiTab(brumasiLogs)
             }
         }
     }
 
-    if (showPhotoPreview && reptile?.profilePhotoUri?.isNotEmpty() == true) {
+    previewPhotoUri?.let { uri ->
         Dialog(
-            onDismissRequest = { showPhotoPreview = false },
+            onDismissRequest = { previewPhotoUri = null },
             properties = DialogProperties(usePlatformDefaultWidth = false)
         ) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(Color.Black.copy(alpha = 0.9f))
-                    .clickable { showPhotoPreview = false }
+                    .clickable { previewPhotoUri = null }
                     .padding(16.dp),
                 contentAlignment = Alignment.Center
             ) {
                 AsyncImage(
-                    model = reptile?.profilePhotoUri,
+                    model = uri,
                     contentDescription = null,
                     modifier = Modifier.fillMaxWidth(),
                     contentScale = ContentScale.Fit
@@ -216,7 +197,8 @@ fun ReptileHeader(
                 contentDescription = null,
                 modifier = Modifier
                     .size(18.dp)
-                    .align(Alignment.TopEnd),
+                    .align(Alignment.TopEnd)
+                    .alpha(0f),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Column {
@@ -268,6 +250,33 @@ fun ReptileHeader(
     }
 }
 @Composable
+fun LogPhotoRow(
+    photos: List<String>,
+    onPhotoClick: (String) -> Unit
+) {
+    if (photos.isNotEmpty()) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            photos.forEach { uri ->
+                AsyncImage(
+                    model = uri,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(64.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .clickable { onPhotoClick(uri) },
+                    contentScale = ContentScale.Crop
+                )
+            }
+        }
+    }
+}
+
+@Composable
 fun StatItem(label: String, value: String) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(text = value, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
@@ -280,6 +289,8 @@ fun GrowthTab(
     logs: List<GrowthLogEntity>,
     weightHistory: List<WeightPoint>,
     lengthHistory: List<LengthPoint>,
+    viewModel: ReptileDetailViewModel,
+    onPhotoClick: (String) -> Unit,
     onEditLog: (Long) -> Unit
 ) {
     var showWeight by remember { mutableStateOf(true) }
@@ -380,7 +391,8 @@ fun GrowthTab(
                         contentDescription = null,
                         modifier = Modifier
                             .size(18.dp)
-                            .align(Alignment.TopEnd),
+                            .align(Alignment.TopEnd)
+                            .alpha(0f),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Column {
@@ -389,18 +401,12 @@ fun GrowthTab(
                             log.weightGrams?.let { Text(text = "${it}g", fontWeight = FontWeight.Bold) }
                             log.lengthCm?.let { Text(text = "${it}cm", fontWeight = FontWeight.Bold) }
                         }
-                        val conditionIndo = when(log.bodyCondition) {
-                            "UNDERWEIGHT" -> "Kurus Sekali"
-                            "SLIM" -> "Kurus"
-                            "IDEAL" -> "Ideal"
-                            "HEAVY" -> "Gemuk"
-                            "OBESE" -> "Obesitas"
-                            else -> log.bodyCondition
-                        }
-                        Text(text = "Kondisi Tubuh: $conditionIndo", style = MaterialTheme.typography.bodySmall)
                         if (log.notes.isNotEmpty()) {
                             Text(text = log.notes, style = MaterialTheme.typography.bodyMedium)
                         }
+                        
+                        val photos by viewModel.getPhotosForLog(log.id).collectAsState(initial = emptyList())
+                        LogPhotoRow(photos = photos.map { it.photoUri }, onPhotoClick = onPhotoClick)
                     }
                 }
             }
@@ -455,7 +461,8 @@ fun FeedingTab(logs: List<FeedingLogEntity>, onEditLog: (Long) -> Unit) {
                         contentDescription = null,
                         modifier = Modifier
                             .size(18.dp)
-                            .align(Alignment.TopEnd),
+                            .align(Alignment.TopEnd)
+                            .alpha(0f),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Column {
@@ -476,7 +483,11 @@ fun FeedingTab(logs: List<FeedingLogEntity>, onEditLog: (Long) -> Unit) {
 }
 
 @Composable
-fun ScuteTab(logs: List<ScuteLogEntity>) {
+fun ScuteTab(
+    logs: List<ScuteLogEntity>,
+    viewModel: ReptileDetailViewModel,
+    onPhotoClick: (String) -> Unit
+) {
     val dateFormatter = remember { SimpleDateFormat("dd MMM yyyy", Locale.getDefault()) }
     if (logs.isEmpty()) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -523,6 +534,9 @@ fun ScuteTab(logs: List<ScuteLogEntity>) {
                     if (log.notes.isNotEmpty()) {
                         Text(text = log.notes, color = contentColor)
                     }
+
+                    val photos by viewModel.getPhotosForScuteLog(log.id).collectAsState(initial = emptyList())
+                    LogPhotoRow(photos = photos.map { it.photoUri }, onPhotoClick = onPhotoClick)
                 }
             }
         }

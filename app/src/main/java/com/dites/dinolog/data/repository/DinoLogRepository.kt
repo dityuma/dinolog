@@ -14,8 +14,8 @@ class DinoLogRepository(
     private val brumasiLogDao: BrumasiLogDao,
     private val uvbBasingLogDao: UvbBasingLogDao,
     private val dietLogDao: DietLogDao,
-    private val sheddingLogDao: SheddingLogDao,
-    private val healthRecordDao: HealthRecordDao
+    private val healthRecordDao: HealthRecordDao,
+    private val scutePhotoDao: ScutePhotoDao
 ) {
 
     // ── Reptile ──────────────────────────────
@@ -129,12 +129,11 @@ class DinoLogRepository(
     suspend fun updateDietLog(log: DietLogEntity) = dietLogDao.updateDietLog(log)
     suspend fun deleteDietLog(log: DietLogEntity) = dietLogDao.deleteDietLog(log)
 
-    // ── Shedding Log (PRD v3) ─────────────────
-    fun getSheddingLogs(reptileId: Long) = sheddingLogDao.getSheddingLogsForReptile(reptileId)
-    suspend fun getLastShedding(reptileId: Long) = sheddingLogDao.getLastShedding(reptileId)
-    suspend fun addSheddingLog(log: SheddingLogEntity) = sheddingLogDao.insertSheddingLog(log)
-    suspend fun updateSheddingLog(log: SheddingLogEntity) = sheddingLogDao.updateSheddingLog(log)
-    suspend fun deleteSheddingLog(log: SheddingLogEntity) = sheddingLogDao.deleteSheddingLog(log)
+    // ── Scute Photo (PRD v3) ────────────────
+    fun getPhotosForScuteLog(scuteLogId: Long) = scutePhotoDao.getPhotosForScuteLog(scuteLogId)
+    suspend fun addScutePhoto(photo: ScutePhotoEntity) = scutePhotoDao.insertPhoto(photo)
+    suspend fun addScutePhotos(photos: List<ScutePhotoEntity>) = scutePhotoDao.insertPhotos(photos)
+    suspend fun deleteScutePhoto(photo: ScutePhotoEntity) = scutePhotoDao.deletePhoto(photo)
 
     // ── Health Record ─────────────────────────
     fun getHealthRecords(reptileId: Long): Flow<List<HealthRecordEntity>> =

@@ -140,6 +140,27 @@ interface ScuteLogDao {
 }
 
 // ─────────────────────────────────────────────
+// ScutePhotoDao (PRD v3)
+// ─────────────────────────────────────────────
+@Dao
+interface ScutePhotoDao {
+    @Query("SELECT * FROM scute_photos WHERE scuteLogId = :scuteLogId ORDER BY takenAt ASC")
+    fun getPhotosForScuteLog(scuteLogId: Long): Flow<List<ScutePhotoEntity>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertPhoto(photo: ScutePhotoEntity): Long
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertPhotos(photos: List<ScutePhotoEntity>)
+
+    @Delete
+    suspend fun deletePhoto(photo: ScutePhotoEntity)
+
+    @Query("DELETE FROM scute_photos WHERE scuteLogId = :scuteLogId")
+    suspend fun deletePhotosForScuteLog(scuteLogId: Long)
+}
+
+// ─────────────────────────────────────────────
 // SoakingLogDao (PRD v3)
 // ─────────────────────────────────────────────
 @Dao
@@ -215,27 +236,6 @@ interface DietLogDao {
 
     @Delete
     suspend fun deleteDietLog(log: DietLogEntity)
-}
-
-// ─────────────────────────────────────────────
-// SheddingLogDao (PRD v3)
-// ─────────────────────────────────────────────
-@Dao
-interface SheddingLogDao {
-    @Query("SELECT * FROM shedding_logs WHERE reptileId = :reptileId ORDER BY sheddingDate DESC")
-    fun getSheddingLogsForReptile(reptileId: Long): Flow<List<SheddingLogEntity>>
-
-    @Query("SELECT * FROM shedding_logs WHERE reptileId = :reptileId ORDER BY sheddingDate DESC LIMIT 1")
-    suspend fun getLastShedding(reptileId: Long): SheddingLogEntity?
-
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertSheddingLog(log: SheddingLogEntity): Long
-
-    @Update
-    suspend fun updateSheddingLog(log: SheddingLogEntity)
-
-    @Delete
-    suspend fun deleteSheddingLog(log: SheddingLogEntity)
 }
 
 // ─────────────────────────────────────────────

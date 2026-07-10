@@ -34,11 +34,6 @@ fun AddFeedingLogScreen(
     var notes by remember { mutableStateOf("") }
 
     var showDatePicker by remember { mutableStateOf(false) }
-    val foodSuggestions = listOf(
-        "Kangkung", "Selada", "Wortel", "Timun", "Labu", 
-        "Pepaya", "Pisang", "Semangka", "Kaktus (Opuntia)", 
-        "Rumput Gajah", "Dandelion"
-    )
 
     Scaffold(
         topBar = {
@@ -75,35 +70,13 @@ fun AddFeedingLogScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            // Food Type with Suggestions
-            var expanded by remember { mutableStateOf(false) }
-            ExposedDropdownMenuBox(
-                expanded = expanded,
-                onExpandedChange = { expanded = !expanded }
-            ) {
-                OutlinedTextField(
-                    value = foodType,
-                    onValueChange = { foodType = it },
-                    label = { Text("Jenis Makanan") },
-                    placeholder = { Text("e.g. Kangkung") },
-                    modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryEditable, true).fillMaxWidth(),
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) }
-                )
-                ExposedDropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false }
-                ) {
-                    foodSuggestions.forEach { suggestion ->
-                        DropdownMenuItem(
-                            text = { Text(suggestion) },
-                            onClick = {
-                                foodType = suggestion
-                                expanded = false
-                            }
-                        )
-                    }
-                }
-            }
+            OutlinedTextField(
+                value = foodType,
+                onValueChange = { foodType = it },
+                label = { Text("Jenis Makanan") },
+                placeholder = { Text("e.g. Kangkung") },
+                modifier = Modifier.fillMaxWidth()
+            )
 
             OutlinedTextField(
                 value = foodAmount,

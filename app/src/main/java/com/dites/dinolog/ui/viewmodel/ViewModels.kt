@@ -108,7 +108,16 @@ class ReptileDetailViewModel(
     }
 
     // New Logs (PRD v3)
-    fun addScuteLog(log: ScuteLogEntity) = viewModelScope.launch { repository.addScuteLog(log) }
+    fun getPhotosForScuteLog(scuteLogId: Long) = repository.getPhotosForScuteLog(scuteLogId)
+
+    fun addScuteLog(log: ScuteLogEntity, photoUris: List<String> = emptyList()) = viewModelScope.launch {
+        val logId = repository.addScuteLog(log)
+        if (photoUris.isNotEmpty()) {
+            val photos = photoUris.map { ScutePhotoEntity(scuteLogId = logId, photoUri = it) }
+            repository.addScutePhotos(photos)
+        }
+    }
+
     fun deleteScuteLog(log: ScuteLogEntity) = viewModelScope.launch { repository.deleteScuteLog(log) }
 
     fun addSoakingLog(log: SoakingLogEntity) = viewModelScope.launch { repository.addSoakingLog(log) }

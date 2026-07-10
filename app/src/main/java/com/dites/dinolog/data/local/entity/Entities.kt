@@ -114,6 +114,26 @@ data class ScuteLogEntity(
 )
 
 // ─────────────────────────────────────────────
+// ScutePhoto — foto kondisi karapas (many-to-one)
+// ─────────────────────────────────────────────
+@Entity(
+    tableName = "scute_photos",
+    foreignKeys = [ForeignKey(
+        entity = ScuteLogEntity::class,
+        parentColumns = ["id"],
+        childColumns = ["scuteLogId"],
+        onDelete = ForeignKey.CASCADE
+    )],
+    indices = [Index("scuteLogId")]
+)
+data class ScutePhotoEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val scuteLogId: Long,
+    val photoUri: String,
+    val takenAt: Long = System.currentTimeMillis()
+)
+
+// ─────────────────────────────────────────────
 // SoakingLog — Log perendaman (PRD v3)
 // ─────────────────────────────────────────────
 @Entity(
@@ -202,27 +222,6 @@ data class DietLogEntity(
     val vegetables: String = "",
     val fruits: String = "",
     val supplements: String = "",
-    val notes: String = ""
-)
-
-// ─────────────────────────────────────────────
-// SheddingLog — Log ganti kulit (PRD v3)
-// ─────────────────────────────────────────────
-@Entity(
-    tableName = "shedding_logs",
-    foreignKeys = [ForeignKey(
-        entity = ReptileEntity::class,
-        parentColumns = ["id"],
-        childColumns = ["reptileId"],
-        onDelete = ForeignKey.CASCADE
-    )],
-    indices = [Index("reptileId")]
-)
-data class SheddingLogEntity(
-    @PrimaryKey(autoGenerate = true) val id: Long = 0,
-    val reptileId: Long,
-    val sheddingDate: Long = System.currentTimeMillis(),
-    val status: String = "COMPLETE", // COMPLETE / PARTIAL / STUCK
     val notes: String = ""
 )
 

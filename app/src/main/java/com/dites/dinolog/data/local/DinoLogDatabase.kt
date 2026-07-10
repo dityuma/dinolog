@@ -20,8 +20,8 @@ import com.dites.dinolog.data.local.entity.*
         BrumasiLogEntity::class,
         UvbBasingLogEntity::class,
         DietLogEntity::class,
-        SheddingLogEntity::class,
-        HealthRecordEntity::class
+        HealthRecordEntity::class,
+        ScutePhotoEntity::class
     ],
     version = 3,
     exportSchema = true
@@ -37,8 +37,8 @@ abstract class DinoLogDatabase : RoomDatabase() {
     abstract fun brumasiLogDao(): BrumasiLogDao
     abstract fun uvbBasingLogDao(): UvbBasingLogDao
     abstract fun dietLogDao(): DietLogDao
-    abstract fun sheddingLogDao(): SheddingLogDao
     abstract fun healthRecordDao(): HealthRecordDao
+    abstract fun scutePhotoDao(): ScutePhotoDao
 
     companion object {
         @Volatile
@@ -166,16 +166,15 @@ abstract class DinoLogDatabase : RoomDatabase() {
         val MIGRATION_2_3 = object : Migration(2, 3) {
             override fun migrate(database: SupportSQLiteDatabase) {
                 database.execSQL("""
-                    CREATE TABLE IF NOT EXISTS shedding_logs (
+                    CREATE TABLE IF NOT EXISTS scute_photos (
                         id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-                        reptileId INTEGER NOT NULL,
-                        sheddingDate INTEGER NOT NULL,
-                        status TEXT NOT NULL DEFAULT 'COMPLETE',
-                        notes TEXT NOT NULL DEFAULT '',
-                        FOREIGN KEY(reptileId) REFERENCES reptiles(id) ON DELETE CASCADE
+                        scuteLogId INTEGER NOT NULL,
+                        photoUri TEXT NOT NULL,
+                        takenAt INTEGER NOT NULL,
+                        FOREIGN KEY(scuteLogId) REFERENCES scute_logs(id) ON DELETE CASCADE
                     )
                 """)
-                database.execSQL("CREATE INDEX IF NOT EXISTS index_shedding_logs_reptileId ON shedding_logs(reptileId)")
+                database.execSQL("CREATE INDEX IF NOT EXISTS index_scute_photos_scuteLogId ON scute_photos(scuteLogId)")
             }
         }
 

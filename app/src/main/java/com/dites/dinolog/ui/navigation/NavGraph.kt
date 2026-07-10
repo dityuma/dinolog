@@ -34,17 +34,8 @@ sealed class Screen(val route: String) {
     object AddScuteLog : Screen("add_scute_log/{reptileId}") {
         fun createRoute(reptileId: Long) = "add_scute_log/$reptileId"
     }
-    object AddSoakingLog : Screen("add_soaking_log/{reptileId}") {
-        fun createRoute(reptileId: Long) = "add_soaking_log/$reptileId"
-    }
     object AddBrumasiLog : Screen("add_brumasi_log/{reptileId}") {
         fun createRoute(reptileId: Long) = "add_brumasi_log/$reptileId"
-    }
-    object AddUvbBasingLog : Screen("add_uvb_basing_log/{reptileId}") {
-        fun createRoute(reptileId: Long) = "add_uvb_basing_log/$reptileId"
-    }
-    object AddDietLog : Screen("add_diet_log/{reptileId}") {
-        fun createRoute(reptileId: Long) = "add_diet_log/$reptileId"
     }
     object AddHealthRecord : Screen("add_health_record/{reptileId}") {
         fun createRoute(reptileId: Long) = "add_health_record/$reptileId"
@@ -96,10 +87,7 @@ fun NavGraph(
                 onNavigateToEditFeeding = { rid, lid -> navController.navigate(Screen.EditFeedingLog.createRoute(rid, lid)) },
                 onNavigateToAddScute = { id -> navController.navigate(Screen.AddScuteLog.createRoute(id)) },
                 onNavigateToAddHealth = { id -> navController.navigate(Screen.AddHealthRecord.createRoute(id)) },
-                onNavigateToAddSoaking = { id -> navController.navigate(Screen.AddSoakingLog.createRoute(id)) },
                 onNavigateToAddBrumasi = { id -> navController.navigate(Screen.AddBrumasiLog.createRoute(id)) },
-                onNavigateToAddUvb = { id -> navController.navigate(Screen.AddUvbBasingLog.createRoute(id)) },
-                onNavigateToAddDiet = { id -> navController.navigate(Screen.AddDietLog.createRoute(id)) },
                 onNavigateToEditReptile = { id -> navController.navigate(Screen.EditReptile.createRoute(id)) }
             )
         }
@@ -164,44 +152,11 @@ fun NavGraph(
             )
         }
         composable(
-            route = Screen.AddSoakingLog.route,
-            arguments = listOf(navArgument("reptileId") { type = NavType.LongType })
-        ) { backStackEntry ->
-            val reptileId = backStackEntry.arguments?.getLong("reptileId") ?: return@composable
-            AddSoakingLogScreen(
-                reptileId = reptileId,
-                repository = repository,
-                onNavigateBack = { navController.popBackStack() }
-            )
-        }
-        composable(
             route = Screen.AddBrumasiLog.route,
             arguments = listOf(navArgument("reptileId") { type = NavType.LongType })
         ) { backStackEntry ->
             val reptileId = backStackEntry.arguments?.getLong("reptileId") ?: return@composable
             AddBrumasiLogScreen(
-                reptileId = reptileId,
-                repository = repository,
-                onNavigateBack = { navController.popBackStack() }
-            )
-        }
-        composable(
-            route = Screen.AddUvbBasingLog.route,
-            arguments = listOf(navArgument("reptileId") { type = NavType.LongType })
-        ) { backStackEntry ->
-            val reptileId = backStackEntry.arguments?.getLong("reptileId") ?: return@composable
-            AddUvbBasingLogScreen(
-                reptileId = reptileId,
-                repository = repository,
-                onNavigateBack = { navController.popBackStack() }
-            )
-        }
-        composable(
-            route = Screen.AddDietLog.route,
-            arguments = listOf(navArgument("reptileId") { type = NavType.LongType })
-        ) { backStackEntry ->
-            val reptileId = backStackEntry.arguments?.getLong("reptileId") ?: return@composable
-            AddDietLogScreen(
                 reptileId = reptileId,
                 repository = repository,
                 onNavigateBack = { navController.popBackStack() }

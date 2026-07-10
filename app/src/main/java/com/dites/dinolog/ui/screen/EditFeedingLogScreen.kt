@@ -98,7 +98,7 @@ fun EditFeedingLogScreen(
                     value = foodType,
                     onValueChange = { foodType = it },
                     label = { Text("Jenis Makanan") },
-                    placeholder = { Text("e.g. Kangkung") },
+                    placeholder = { Text("e.g. Fumak") },
                     modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryEditable, true).fillMaxWidth(),
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) }
                 )
