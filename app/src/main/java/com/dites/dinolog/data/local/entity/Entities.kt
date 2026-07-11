@@ -175,7 +175,6 @@ data class BrumasiLogEntity(
     val endDate: Long? = null,
     val weightBeforeGrams: Float? = null,
     val weightAfterGrams: Float? = null,
-    val location: String = "",
     val notes: String = ""
 )
 

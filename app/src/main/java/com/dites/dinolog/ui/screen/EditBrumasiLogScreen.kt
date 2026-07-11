@@ -14,7 +14,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.dites.dinolog.data.local.entity.BrumasiLogEntity
 import com.dites.dinolog.data.repository.DinoLogRepository
 import com.dites.dinolog.ui.viewmodel.TortoiseCareViewModel
 import com.dites.dinolog.ui.viewmodel.TortoiseCareViewModelFactory
@@ -23,20 +22,38 @@ import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddBrumasiLogScreen(
+fun EditBrumasiLogScreen(
     reptileId: Long,
+    logId: Long,
     repository: DinoLogRepository,
     onNavigateBack: () -> Unit,
     viewModel: TortoiseCareViewModel = viewModel(
         factory = TortoiseCareViewModelFactory(repository, reptileId)
     )
 ) {
-    var startDate by remember { mutableStateOf(System.currentTimeMillis()) }
+    val brumasiLogs by viewModel.brumasiLogs.collectAsState()
+    val log = brumasiLogs.find { it.id == logId }
+
+    var startDate by remember { mutableLongStateOf(System.currentTimeMillis()) }
     var endDate by remember { mutableStateOf<Long?>(null) }
     var isOngoing by remember { mutableStateOf(true) }
     var weightBeforeGrams by remember { mutableStateOf("") }
     var weightAfterGrams by remember { mutableStateOf("") }
     var notes by remember { mutableStateOf("") }
+
+    var initialized by remember { mutableStateOf(false) }
+
+    LaunchedEffect(log) {
+        if (log != null && !initialized) {
+            startDate = log.startDate
+            endDate = log.endDate
+            isOngoing = log.endDate == null
+            weightBeforeGrams = log.weightBeforeGrams?.toString() ?: ""
+            weightAfterGrams = log.weightAfterGrams?.toString() ?: ""
+            notes = log.notes
+            initialized = true
+        }
+    }
 
     var showStartDatePicker by remember { mutableStateOf(false) }
     var showEndDatePicker by remember { mutableStateOf(false) }
@@ -44,7 +61,7 @@ fun AddBrumasiLogScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Tambah Catatan Brumasi") },
+                title = { Text("Edit Catatan Brumasi") },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Kembali")
@@ -61,18 +78,6 @@ fun AddBrumasiLogScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Card(
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(
-                    "Brumasi normal untuk beberapa spesies. Pantau berat badan secara berkala.",
-                    modifier = Modifier.padding(16.dp),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-            }
-
             val dateFormatter = remember { SimpleDateFormat("dd MMM yyyy", Locale.getDefault()) }
 
             OutlinedTextField(
@@ -101,7 +106,7 @@ fun AddBrumasiLogScreen(
                     value = endDate?.let { dateFormatter.format(Date(it)) } ?: "",
                     onValueChange = {},
                     readOnly = true,
-                    label = { Text("Tanggal Sembuh") },
+                    label = { Text("Tanggal Sembuh Brumasi") },
                     trailingIcon = {
                         IconButton(onClick = { showEndDatePicker = true }) {
                             Icon(Icons.Default.DateRange, contentDescription = "Pilih Tanggal")
@@ -114,20 +119,22 @@ fun AddBrumasiLogScreen(
             OutlinedTextField(
                 value = weightBeforeGrams,
                 onValueChange = { weightBeforeGrams = it },
-                label = { Text("Berat Sebelum Brumasi (gram)") },
+                label = { Text("Berat Sebelum Brumasi (gram, opsional)") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 modifier = Modifier.fillMaxWidth(),
-                singleLine = true
+                singleLine = true,
+                placeholder = { Text("e.g. 850") }
             )
 
             if (!isOngoing) {
                 OutlinedTextField(
                     value = weightAfterGrams,
                     onValueChange = { weightAfterGrams = it },
-                    label = { Text("Berat Setelah Brumasi (gram)") },
+                    label = { Text("Berat Setelah Brumasi (gram, opsional)") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
+                    singleLine = true,
+                    placeholder = { Text("e.g. 820") }
                 )
             }
 
@@ -141,21 +148,22 @@ fun AddBrumasiLogScreen(
 
             Button(
                 onClick = {
-                    viewModel.addBrumasiLog(
-                        BrumasiLogEntity(
-                            reptileId = reptileId,
-                            startDate = startDate,
-                            endDate = if (isOngoing) null else endDate,
-                            weightBeforeGrams = weightBeforeGrams.toFloatOrNull(),
-                            weightAfterGrams = weightAfterGrams.toFloatOrNull(),
-                            notes = notes
+                    log?.let { current ->
+                        viewModel.updateBrumasiLog(
+                            current.copy(
+                                startDate = startDate,
+                                endDate = if (isOngoing) null else endDate,
+                                weightBeforeGrams = weightBeforeGrams.toFloatOrNull(),
+                                weightAfterGrams = weightAfterGrams.toFloatOrNull(),
+                                notes = notes
+                            )
                         )
-                    )
+                    }
                     onNavigateBack()
                 },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Simpan")
+                Text("Simpan Perubahan")
             }
         }
     }

@@ -61,6 +61,7 @@ fun ReptileDetailScreen(
     onNavigateToAddRiwayat: (Long) -> Unit,
     onNavigateToEditRiwayat: (Long, Long) -> Unit,
     onNavigateToAddBrumasi: (Long) -> Unit,
+    onNavigateToEditBrumasi: (Long, Long) -> Unit,
     onNavigateToEditReptile: (Long) -> Unit,
     viewModel: ReptileDetailViewModel = viewModel(
         factory = ReptileDetailViewModelFactory(repository, reptileId)
@@ -152,7 +153,9 @@ fun ReptileDetailScreen(
                 3 -> RiwayatTab(riwayatLogs, viewModel, { uri -> previewPhotoUri = uri }) { riwayatId ->
                     onNavigateToEditRiwayat(reptileId, riwayatId)
                 }
-                4 -> BrumasiTab(brumasiLogs)
+                4 -> BrumasiTab(brumasiLogs) { logId ->
+                    onNavigateToEditBrumasi(reptileId, logId)
+                }
             }
         }
     }
@@ -648,7 +651,7 @@ fun CareSectionHeader(title: String, onAdd: () -> Unit) {
 }
 
 @Composable
-fun BrumasiTab(logs: List<BrumasiLogEntity>) {
+fun BrumasiTab(logs: List<BrumasiLogEntity>, onEditLog: (Long) -> Unit) {
     val dateFormatter = remember { SimpleDateFormat("dd MMM yyyy", Locale.getDefault()) }
     if (logs.isEmpty()) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -664,28 +667,38 @@ fun BrumasiTab(logs: List<BrumasiLogEntity>) {
         items(logs) { log ->
             val isActive = log.endDate == null
             Card(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onEditLog(log.id) },
                 colors = if (isActive) CardDefaults.cardColors(containerColor = Color(0xFFFFF3E0)) else CardDefaults.cardColors()
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Box(modifier = Modifier.padding(16.dp)) {
+                    Icon(
+                        Icons.Default.Edit,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(18.dp)
+                            .align(Alignment.TopEnd)
+                            .alpha(0f),
+                        tint = if (isActive) Color(0xFFE65100) else MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Column {
                         Text(
                             text = if (isActive) "Sedang Brumasi" else "Selesai Brumasi",
                             style = MaterialTheme.typography.labelLarge,
                             color = if (isActive) Color(0xFFE65100) else MaterialTheme.colorScheme.primary
                         )
-                        Text(text = log.location, style = MaterialTheme.typography.labelMedium)
+                        Spacer(Modifier.height(4.dp))
+                        Text(
+                            text = "${dateFormatter.format(Date(log.startDate))} — ${log.endDate?.let { dateFormatter.format(Date(it)) } ?: "Berlangsung"}",
+                            fontWeight = FontWeight.Bold
+                        )
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                            log.weightBeforeGrams?.let { Text("Awal: ${it}g", style = MaterialTheme.typography.bodySmall) }
+                            log.weightAfterGrams?.let { Text("Akhir: ${it}g", style = MaterialTheme.typography.bodySmall) }
+                        }
+                        if (log.notes.isNotEmpty()) Text(log.notes, style = MaterialTheme.typography.bodySmall)
                     }
-                    Spacer(Modifier.height(4.dp))
-                    Text(
-                        text = "${dateFormatter.format(Date(log.startDate))} — ${log.endDate?.let { dateFormatter.format(Date(it)) } ?: "Berlangsung"}",
-                        fontWeight = FontWeight.Bold
-                    )
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                        log.weightBeforeGrams?.let { Text("Awal: ${it}g", style = MaterialTheme.typography.bodySmall) }
-                        log.weightAfterGrams?.let { Text("Akhir: ${it}g", style = MaterialTheme.typography.bodySmall) }
-                    }
-                    if (log.notes.isNotEmpty()) Text(log.notes, style = MaterialTheme.typography.bodySmall)
                 }
             }
         }

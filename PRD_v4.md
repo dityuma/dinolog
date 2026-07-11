@@ -1,8 +1,13 @@
 # PRD — DinoLog v4.0
 **Version:** 4.0  
 **Status:** In Development  
-**Last Updated:** Agustus 2025  
-**Perubahan dari v3.0:** Penambahan fitur Edit untuk semua record, dukungan multi-foto untuk Karapas (Scute), visualisasi pertumbuhan yang lebih baik (Grafik Berat & Panjang), dan peningkatan UI Detail Reptil.
+**Last Updated:** Februari 2025  
+**Perubahan dari v3.0:** 
+- Implementasi **Riwayat Sakit** mendalam dengan dukungan foto (maks 4) dan status (sembuh/masih sakit).
+- Dukungan foto untuk **Kondisi Karapas (Scute Log)**.
+- Penambahan fitur **Edit/Update** untuk hampir semua jenis log (Feeding, Growth, Riwayat, Scute, Brumasi).
+- Refinement skema database (v6) dan penghapusan field `location` pada Brumasi.
+- Peningkatan manajemen asset foto di internal storage.
 
 ---
 
@@ -10,100 +15,117 @@
 
 **DinoLog** adalah aplikasi Android offline-first khusus untuk mencatat pertumbuhan dan perawatan **kura-kura darat (tortoise)**. 
 
-**Visi v4.0:** Memberikan fleksibilitas bagi pengguna untuk memperbaiki data yang salah (Edit) dan pemantauan visual kondisi karapas yang lebih mendalam.
+**Fitur Utama:**
+1. **Profil Kura-kura:** Identitas lengkap (spesies, jenis kelamin, tanggal lahir/adopsi).
+2. **Pertumbuhan:** Catat berat (gram) dan panjang (cm) beserta foto.
+3. **Pemberian Makan:** Jenis pakan herbivora dan porsi.
+4. **Kesehatan & Riwayat Sakit:** Tracking penyakit dari mulai hingga sembuh dengan dokumentasi foto.
+5. **Kondisi Karapas:** Pantau gejala piramiding, shell lunak, atau jamur dengan foto.
+6. **Perawatan Rutin:** Soaking (mandi), Sesi UVB/Basking, dan detail Diet/Suplemen.
+7. **Brumasi:** Catat periode hibernasi dan perubahan berat badan.
+
+**Filosofi:** 100% Offline, Privacy-focused, No cloud, No accounts.
 
 ---
 
-## 2. Fitur Utama (Update v4.0)
+## 2. Target User
 
-1.  **Sistem Pengeditan Record (NEW):**
-    *   Pengguna dapat mengedit profil kura-kura.
-    *   Pengguna dapat mengedit catatan makan (Feeding Log).
-    *   Pengguna dapat mengedit catatan pertumbuhan (Growth Log).
-    *   Pengguna dapat mengedit kondisi karapas (Scute Log).
-2.  **Pemantauan Karapas dengan Foto (NEW):**
-    *   Dukungan hingga 4 foto per catatan kondisi karapas.
-    *   Penyimpanan internal yang aman dan terisolasi.
-3.  **Visualisasi Pertumbuhan Ganda (IMPROVED):**
-    *   Grafik interaktif menggunakan Vico.
-    *   Toggle antara grafik **Berat (gram)** dan **Panjang (cm)**.
-4.  **Dialog Pratinjau Foto:**
-    *   Menampilkan foto profil atau foto log dalam ukuran penuh dengan latar belakang redup (overlay).
+**Keeper kura-kura darat (Tortoise Keepers)** yang ingin mendokumentasikan perkembangan peliharaan mereka secara detail dan terstruktur tanpa bergantung pada koneksi internet.
 
 ---
 
-## 3. Tech Stack Update
+## 3. Tech Stack
 
-*   **Charts:** Vico 2.0.1 (mendukung grafik garis interaktif).
-*   **Database:** Room v3 (dengan migrasi otomatis/manual dari v1 dan v2).
-*   **Image Preview:** Custom Dialog + Coil.
+| Layer | Teknologi |
+|---|---|
+| Language | Kotlin |
+| UI | Jetpack Compose + Material3 |
+| Architecture | MVVM (ViewModel + StateFlow) |
+| Database | Room (Version 6) |
+| Image Loading | Coil (coil-compose) |
+| Charts | Vico (pencatatan pertumbuhan) |
+| Navigation | Navigation Compose |
+| Reminders | WorkManager (untuk Health Records) |
+| Min SDK | API 26 (Android 8.0) |
 
 ---
 
-## 4. Database Schema Update (v3)
+## 4. Database Schema (v6)
 
-### 4.1 ScutePhotoEntity (`scute_photos`) — NEW
-Menyimpan banyak foto untuk satu catatan kondisi karapas.
+### 4.1 RiwayatEntity (`riwayat_logs`) — BARU/REFACTOR
+Mencatat sejarah penyakit secara mendalam.
 | Field | Type | Keterangan |
 |---|---|---|
 | id | Long (PK) | |
-| scuteLogId | Long (FK) | Relasi ke `scute_logs.id` (CASCADE) |
-| photoUri | String | Path internal |
-| takenAt | Long | Timestamp |
+| reptileId | Long (FK) | |
+| illnessName | String | Wajib diisi |
+| notes | String | Deskripsi gejala/pengobatan |
+| startDate | Long | Tanggal mulai sakit |
+| isOngoing | Boolean | Status kesembuhan |
+| endDate | Long? | Tanggal sembuh |
+| createdAt | Long | Timestamp pembuatan |
 
-### 4.2 GrowthPhotoEntity (`growth_photos`) — EXISTING
-Digunakan untuk menyimpan foto pada log pertumbuhan.
-
----
-
-## 5. Navigation & Screen Map
-
-| Route | Screen | Deskripsi |
+### 4.2 RiwayatPhotoEntity (`riwayat_photos`) — BARU
+| Field | Type | Keterangan |
 |---|---|---|
-| `reptile_list` | ReptileListScreen | Daftar kura-kura |
-| `reptile_detail/{id}`| ReptileDetailScreen | Detail & Grafik |
-| `edit_reptile/{id}` | EditReptileScreen | **(NEW)** Edit profil |
-| `edit_feeding_log/{rid}/{lid}` | EditFeedingLogScreen | **(NEW)** Edit catatan makan |
-| `edit_growth_log/{rid}/{lid}` | EditGrowthLogScreen | **(NEW)** Edit catatan tumbuh |
-| `edit_scute_log/{rid}/{lid}` | EditScuteLogScreen | **(NEW)** Edit catatan karapas |
-| ... | (Add screens) | Sesuai PRD v3.0 |
+| id | Long (PK) | |
+| riwayatId | Long (FK) | |
+| photoUri | String | Internal storage path |
+| takenAt | Long | Timestamp foto |
+
+### 4.3 ScutePhotoEntity (`scute_photos`) — BARU
+Mendukung dokumentasi visual kondisi tempurung.
+| Field | Type | Keterangan |
+|---|---|---|
+| id | Long (PK) | |
+| scuteLogId | Long (FK) | |
+| photoUri | String | |
+
+### 4.4 BrumasiLogEntity (`brumasi_logs`) — UPDATE
+Field `location` dihapus karena kurang relevan dibanding catatan detail.
+| Field | Type | Keterangan |
+|---|---|---|
+| weightBeforeGrams | Float? | |
+| weightAfterGrams | Float? | |
+| notes | String | Deskripsi lokasi & kondisi digabung di sini |
 
 ---
 
-## 6. Spesifikasi UI Baru
+## 5. Navigation & UI Flow
 
-### 6.1 ReptileDetailScreen Improvements
-*   **Header:** Klik pada kartu header membuka `EditReptileScreen`.
-*   **Tab Tumbuh:**
-    *   Segmented Button untuk switch Grafik Berat / Panjang.
-    *   Grafik tampil jika minimal ada 2 data.
-    *   Klik pada kartu log pertumbuhan membuka `EditGrowthLogScreen`.
-*   **Tab Makan:** Klik pada kartu log makan membuka `EditFeedingLogScreen`.
-*   **Tab Karapas:** Menampilkan grid foto (maks 4) per log. Klik kartu membuka `EditScuteLogScreen`.
+### 5.1 New Screens (v4)
+- `AddRiwayatScreen`: Form input penyakit baru dengan multi-photo picker.
+- `EditRiwayatScreen`: Update status kesembuhan atau tambah catatan pengobatan.
+- `EditFeedingLogScreen`: Koreksi data pemberian makan.
+- `EditScuteLogScreen`: Update kondisi karapas + foto.
+- `EditGrowthLogScreen`: Koreksi data pertumbuhan.
 
-### 6.2 Add/Edit ScuteLogScreen
-*   **Photo Picker:** Pilihan "Ambil Foto" atau "Pilih dari Galeri".
-*   **Limit:** Maksimal 4 foto per sesi.
-*   **Warning UI:** 
-    *   "Piramiding" -> Background Oranye.
-    *   "Shell Lunak" -> Background Merah (Error).
-
----
-
-## 7. Aturan Bisnis (Update)
-
-1.  **Migrasi Data:** Pastikan data dari v2 (shedding_logs) bermigrasi ke v3 (scute_logs) tanpa kehilangan catatan.
-2.  **Manajemen File:** Foto yang dihapus saat pengeditan harus dibersihkan dari penyimpanan internal untuk menghemat ruang.
-3.  **Validation:** Field utama (seperti `foodType` atau `recordedAt`) tetap wajib diisi pada mode edit.
-4.  **Grafik:** Data yang ditampilkan di grafik adalah data yang memiliki nilai (non-null) untuk field terkait.
+### 5.2 Updated Detail Screen
+`ReptileDetailScreen` kini memiliki tab yang lebih lengkap:
+1. **Tumbuh**: Grafik & List pertumbuhan.
+2. **Makan**: Histori pemberian pakan.
+3. **Karapas**: Galeri kondisi tempurung.
+4. **Medis**: Gabungan `Riwayat Sakit` (Penyakit) dan `Catatan Medis` (Vaksin/Obat cacing/Vet visit).
+5. **Perawatan**: Soaking, UVB, Diet.
+6. **Brumasi**: Histori istirahat panjang.
 
 ---
 
-## 8. Development Roadmap
+## 6. Aturan Bisnis & Validasi
 
-*   [x] Migrasi Room Database ke v3.
-*   [x] Implementasi UI Edit untuk Feeding & Growth.
-*   [x] Implementasi Multi-photo support untuk Scute.
-*   [x] Integrasi Grafik Vico untuk pertumbuhan.
-*   [ ] Integrasi WorkManager untuk pengingat (Next Phase).
-*   [ ] Export data ke CSV/Excel (Next Phase).
+1. **Batas Foto**: Maksimal 4 foto untuk Riwayat Sakit dan Growth Log untuk menjaga performa dan storage.
+2. **Status "Sedang Sakit"**: Jika `isOngoing` true, record akan diberi highlight di UI agar keeper tetap waspada.
+3. **Storage Management**: Foto disimpan di folder spesifik (`riwayat_photos`, `growth_photos`, `scute_photos`) di internal storage aplikasi.
+4. **Data Integrity**: Menghapus data induk (Reptil) akan menghapus seluruh log dan file foto terkait (Cascade Delete + Manual Cleanup File).
+5. **Sakit vs Medis**: 
+   - `Riwayat Sakit` untuk kondisi patologis (Pneumonia, MBD, Jamur).
+   - `Health Record` untuk tindakan preventif/rutin (Obat cacing, Check-up).
+
+---
+
+## 7. Roadmap Selanjutnya (v5.0)
+
+- **Notification Engine**: Pengingat otomatis untuk jadwal jemur atau soaking berdasarkan input keeper.
+- **Export Data**: Fitur ekspor seluruh data ke PDF/Excel untuk dibawa saat ke Dokter Hewan.
+- **Dark Mode Support**: Optimasi tema UI.
+- **Database Backup**: Local backup ke folder Downloads sebagai antisipasi ganti device.

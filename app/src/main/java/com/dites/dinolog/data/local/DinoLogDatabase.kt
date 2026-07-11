@@ -25,7 +25,7 @@ import com.dites.dinolog.data.local.entity.*
         RiwayatEntity::class,
         RiwayatPhotoEntity::class
     ],
-    version = 5,
+    version = 6,
     exportSchema = true
 )
 abstract class DinoLogDatabase : RoomDatabase() {
@@ -220,6 +220,31 @@ abstract class DinoLogDatabase : RoomDatabase() {
             }
         }
 
+        val MIGRATION_5_6 = object : Migration(5, 6) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE brumasi_logs RENAME TO brumasi_logs_old")
+                database.execSQL("""
+                    CREATE TABLE brumasi_logs (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        reptileId INTEGER NOT NULL,
+                        startDate INTEGER NOT NULL,
+                        endDate INTEGER,
+                        weightBeforeGrams REAL,
+                        weightAfterGrams REAL,
+                        notes TEXT NOT NULL DEFAULT '',
+                        FOREIGN KEY(reptileId) REFERENCES reptiles(id) ON DELETE CASCADE
+                    )
+                """)
+                database.execSQL("""
+                    INSERT INTO brumasi_logs (id, reptileId, startDate, endDate, weightBeforeGrams, weightAfterGrams, notes)
+                    SELECT id, reptileId, startDate, endDate, weightBeforeGrams, weightAfterGrams, notes
+                    FROM brumasi_logs_old
+                """)
+                database.execSQL("DROP TABLE brumasi_logs_old")
+                database.execSQL("CREATE INDEX IF NOT EXISTS index_brumasi_logs_reptileId ON brumasi_logs(reptileId)")
+            }
+        }
+
         fun getInstance(context: Context): DinoLogDatabase {
             return INSTANCE ?: synchronized(this) {
                 Room.databaseBuilder(
@@ -227,7 +252,7 @@ abstract class DinoLogDatabase : RoomDatabase() {
                     DinoLogDatabase::class.java,
                     "dinolog.db"
                 )
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6)
                     .build()
                     .also { INSTANCE = it }
             }

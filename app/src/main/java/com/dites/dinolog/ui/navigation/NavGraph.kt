@@ -40,6 +40,9 @@ sealed class Screen(val route: String) {
     object AddBrumasiLog : Screen("add_brumasi_log/{reptileId}") {
         fun createRoute(reptileId: Long) = "add_brumasi_log/$reptileId"
     }
+    object EditBrumasiLog : Screen("edit_brumasi_log/{reptileId}/{logId}") {
+        fun createRoute(reptileId: Long, logId: Long) = "edit_brumasi_log/$reptileId/$logId"
+    }
     object AddRiwayat : Screen("add_riwayat/{reptileId}") {
         fun createRoute(reptileId: Long) = "add_riwayat/$reptileId"
     }
@@ -96,6 +99,7 @@ fun NavGraph(
                 onNavigateToAddRiwayat = { id -> navController.navigate(Screen.AddRiwayat.createRoute(id)) },
                 onNavigateToEditRiwayat = { rid, lid -> navController.navigate(Screen.EditRiwayat.createRoute(rid, lid)) },
                 onNavigateToAddBrumasi = { id -> navController.navigate(Screen.AddBrumasiLog.createRoute(id)) },
+                onNavigateToEditBrumasi = { rid, lid -> navController.navigate(Screen.EditBrumasiLog.createRoute(rid, lid)) },
                 onNavigateToEditReptile = { id -> navController.navigate(Screen.EditReptile.createRoute(id)) }
             )
         }
@@ -182,6 +186,22 @@ fun NavGraph(
             val reptileId = backStackEntry.arguments?.getLong("reptileId") ?: return@composable
             AddBrumasiLogScreen(
                 reptileId = reptileId,
+                repository = repository,
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+        composable(
+            route = Screen.EditBrumasiLog.route,
+            arguments = listOf(
+                navArgument("reptileId") { type = NavType.LongType },
+                navArgument("logId") { type = NavType.LongType }
+            )
+        ) { backStackEntry ->
+            val reptileId = backStackEntry.arguments?.getLong("reptileId") ?: return@composable
+            val logId = backStackEntry.arguments?.getLong("logId") ?: return@composable
+            EditBrumasiLogScreen(
+                reptileId = reptileId,
+                logId = logId,
                 repository = repository,
                 onNavigateBack = { navController.popBackStack() }
             )
