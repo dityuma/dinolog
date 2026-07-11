@@ -101,6 +101,7 @@ fun AddRiwayatScreen(
     val dateFormatter = remember { SimpleDateFormat("dd MMM yyyy", Locale.getDefault()) }
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
                 title = { Text("Tambah Riwayat Sakit") },
@@ -108,7 +109,12 @@ fun AddRiwayatScreen(
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Kembali")
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background,
+                    titleContentColor = MaterialTheme.colorScheme.onBackground,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onBackground
+                )
             )
         }
     ) { padding ->
@@ -126,7 +132,16 @@ fun AddRiwayatScreen(
                 label = { Text("Riwayat Sakit") },
                 placeholder = { Text("e.g. Metabolic Bone Disease") },
                 modifier = Modifier.fillMaxWidth(),
-                singleLine = true
+                singleLine = true,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                    focusedLabelColor = MaterialTheme.colorScheme.primary,
+                    unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    cursorColor = MaterialTheme.colorScheme.primary,
+                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface
+                )
             )
 
             OutlinedTextField(
@@ -135,7 +150,16 @@ fun AddRiwayatScreen(
                 label = { Text("Catatan Detail") },
                 placeholder = { Text("e.g. Gejala, obat yang diberikan, dll") },
                 modifier = Modifier.fillMaxWidth(),
-                minLines = 3
+                minLines = 3,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                    focusedLabelColor = MaterialTheme.colorScheme.primary,
+                    unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    cursorColor = MaterialTheme.colorScheme.primary,
+                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface
+                )
             )
 
             OutlinedTextField(
@@ -148,7 +172,16 @@ fun AddRiwayatScreen(
                         Icon(Icons.Default.DateRange, contentDescription = "Pilih Tanggal Mulai")
                     }
                 },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                    focusedLabelColor = MaterialTheme.colorScheme.primary,
+                    unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    cursorColor = MaterialTheme.colorScheme.primary,
+                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface
+                )
             )
 
             Row(
@@ -157,9 +190,13 @@ fun AddRiwayatScreen(
             ) {
                 Checkbox(
                     checked = isOngoing,
-                    onCheckedChange = { isOngoing = it }
+                    onCheckedChange = { isOngoing = it },
+                    colors = CheckboxDefaults.colors(
+                        checkedColor = MaterialTheme.colorScheme.primary,
+                        uncheckedColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 )
-                Text(text = "Sakit masih berlangsung")
+                Text(text = "Sakit masih berlangsung", color = MaterialTheme.colorScheme.onBackground)
             }
 
             if (!isOngoing) {
@@ -173,15 +210,29 @@ fun AddRiwayatScreen(
                             Icon(Icons.Default.DateRange, contentDescription = "Pilih Tanggal Sembuh")
                         }
                     },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                        focusedLabelColor = MaterialTheme.colorScheme.primary,
+                        unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        cursorColor = MaterialTheme.colorScheme.primary,
+                        focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onSurface
+                    )
                 )
             }
 
-            Text(text = "Foto Dokumentasi (maks. 4)", style = MaterialTheme.typography.labelLarge)
+            Text(text = "Foto Dokumentasi (maks. 4)", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onBackground)
             
             if (photoUris.size < 4) {
                 Button(
-                    onClick = { showPhotoOptions = true }
+                    onClick = { showPhotoOptions = true },
+                    shape = RoundedCornerShape(10.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary
+                    )
                 ) {
                     Text("Tambah Foto")
                 }
@@ -241,7 +292,12 @@ fun AddRiwayatScreen(
                     onNavigateBack()
                 },
                 modifier = Modifier.fillMaxWidth(),
-                enabled = illnessName.isNotBlank()
+                enabled = illnessName.isNotBlank(),
+                shape = RoundedCornerShape(10.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                )
             ) {
                 Text("Simpan")
             }

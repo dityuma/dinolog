@@ -1,12 +1,23 @@
 package com.dites.dinolog.ui.viewmodel
 
+import android.content.Context
+import android.net.Uri
+import android.os.Environment
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.dites.dinolog.data.local.entity.*
 import com.dites.dinolog.data.repository.DinoLogRepository
+import com.google.gson.Gson
+import com.google.gson.GsonBuilder
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.File
+import java.io.FileOutputStream
+import java.text.SimpleDateFormat
+import java.util.*
 
 // ─────────────────────────────────────────────
 // ReptileListViewModel — layar daftar semua reptil
@@ -257,6 +268,122 @@ class TortoiseCareViewModelFactory(
         if (modelClass.isAssignableFrom(TortoiseCareViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
             return TortoiseCareViewModel(repository, reptileId) as T
+        }
+        throw IllegalArgumentException("Unknown ViewModel: ${modelClass.name}")
+    }
+}
+
+// ─────────────────────────────────────────────
+// SettingsViewModel — Export & Import
+// ─────────────────────────────────────────────
+class SettingsViewModel(
+    private val repository: DinoLogRepository,
+    private val context: Context
+) : ViewModel() {
+
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+
+    private val gson = GsonBuilder().setPrettyPrinting().create()
+
+    data class ExportData(
+        val exportDate: String,
+        val version: Int,
+        val reptiles: List<ReptileWithLogs>
+    )
+
+    data class ReptileWithLogs(
+        val reptile: ReptileEntity,
+        val growthLogs: List<GrowthLogEntity>,
+        val feedingLogs: List<FeedingLogEntity>,
+        val scuteLogs: List<ScuteLogEntity>,
+        val riwayatLogs: List<RiwayatEntity>,
+        val brumasiLogs: List<BrumasiLogEntity>,
+        val uvbLogs: List<UvbBasingLogEntity>,
+        val dietLogs: List<DietLogEntity>,
+        val healthRecords: List<HealthRecordEntity>
+    )
+
+    fun exportData(onSuccess: (String) -> Unit, onError: () -> Unit) = viewModelScope.launch {
+        _isLoading.value = true
+        try {
+            val allReptiles = repository.getAllReptilesSync()
+            val reptilesWithLogs = allReptiles.map { reptile ->
+                ReptileWithLogs(
+                    reptile = reptile,
+                    growthLogs = repository.getGrowthLogsSync(reptile.id),
+                    feedingLogs = repository.getFeedingLogsSync(reptile.id),
+                    scuteLogs = repository.getScuteLogsSync(reptile.id),
+                    riwayatLogs = repository.getRiwayatSync(reptile.id),
+                    brumasiLogs = repository.getBrumasiLogsSync(reptile.id),
+                    uvbLogs = repository.getUvbLogsSync(reptile.id),
+                    dietLogs = repository.getDietLogsSync(reptile.id),
+                    healthRecords = repository.getHealthRecordsSync(reptile.id)
+                )
+            }
+
+            val exportData = ExportData(
+                exportDate = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault()).format(Date()),
+                version = 1,
+                reptiles = reptilesWithLogs
+            )
+
+            val jsonString = gson.toJson(exportData)
+            val fileName = "dinolog_backup_${SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())}.json"
+            
+            withContext(Dispatchers.IO) {
+                val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                val file = File(downloadsDir, fileName)
+                FileOutputStream(file).use { it.write(jsonString.toByteArray()) }
+            }
+            onSuccess(fileName)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            onError()
+        } finally {
+            _isLoading.value = false
+        }
+    }
+
+    fun importData(uri: Uri, onSuccess: () -> Unit, onError: () -> Unit) = viewModelScope.launch {
+        _isLoading.value = true
+        try {
+            val jsonString = withContext(Dispatchers.IO) {
+                context.contentResolver.openInputStream(uri)?.bufferedReader()?.use { it.readText() }
+            } ?: throw Exception("Cannot read file")
+
+            val importData = gson.fromJson(jsonString, ExportData::class.java)
+            
+            importData.reptiles.forEach { item ->
+                repository.insertReptiles(listOf(item.reptile))
+                repository.insertGrowthLogs(item.growthLogs)
+                repository.insertFeedingLogs(item.feedingLogs)
+                repository.insertScuteLogs(item.scuteLogs)
+                repository.insertRiwayatLogs(item.riwayatLogs)
+                repository.insertBrumasiLogs(item.brumasiLogs)
+                repository.insertUvbLogs(item.uvbLogs)
+                repository.insertDietLogs(item.dietLogs)
+                repository.insertHealthRecords(item.healthRecords)
+            }
+            
+            onSuccess()
+        } catch (e: Exception) {
+            e.printStackTrace()
+            onError()
+        } finally {
+            _isLoading.value = false
+        }
+    }
+}
+
+class SettingsViewModelFactory(
+    private val repository: DinoLogRepository,
+    private val context: Context
+) : ViewModelProvider.Factory {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(SettingsViewModel::class.java)) {
+            @Suppress("UNCHECKED_CAST")
+            return SettingsViewModel(repository, context) as T
         }
         throw IllegalArgumentException("Unknown ViewModel: ${modelClass.name}")
     }

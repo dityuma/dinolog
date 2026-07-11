@@ -5,9 +5,12 @@ import android.content.Context
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -19,6 +22,8 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -92,6 +97,7 @@ fun AddReptileScreen(
     var showAcquireDatePicker by remember { mutableStateOf(false) }
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
                 title = { Text("Tambah Reptil") },
@@ -99,7 +105,12 @@ fun AddReptileScreen(
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Kembali")
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background,
+                    titleContentColor = MaterialTheme.colorScheme.onBackground,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onBackground
+                )
             )
         }
     ) { padding ->
@@ -112,23 +123,19 @@ fun AddReptileScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // Photo Picker
-            Text(text = "Foto Profil", style = MaterialTheme.typography.labelLarge)
+            Text(text = "Foto Profil", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onBackground)
             Box(
                 modifier = Modifier
                     .size(120.dp)
                     .align(Alignment.CenterHorizontally)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primary)
                     .clickable { showPhotoOptions = true },
                 contentAlignment = Alignment.Center
             ) {
                 if (profilePhotoUri.isEmpty()) {
-                    Surface(
-                        modifier = Modifier.fillMaxSize(),
-                        color = MaterialTheme.colorScheme.surfaceVariant,
-                        shape = MaterialTheme.shapes.medium
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Text("Pilih Foto", style = MaterialTheme.typography.labelSmall)
-                        }
+                    Box(contentAlignment = Alignment.Center) {
+                        Text("Pilih Foto", style = MaterialTheme.typography.labelSmall, color = Color.White)
                     }
                 } else {
                     AsyncImage(
@@ -148,7 +155,16 @@ fun AddReptileScreen(
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 isError = name.isBlank(),
-                supportingText = { if (name.isBlank()) Text("Nama wajib diisi") }
+                supportingText = { if (name.isBlank()) Text("Nama wajib diisi") },
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                    focusedLabelColor = MaterialTheme.colorScheme.primary,
+                    unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    cursorColor = MaterialTheme.colorScheme.primary,
+                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface
+                )
             )
 
             OutlinedTextField(
@@ -159,7 +175,16 @@ fun AddReptileScreen(
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 isError = species.isBlank(),
-                supportingText = { if (species.isBlank()) Text("Spesies wajib diisi") }
+                supportingText = { if (species.isBlank()) Text("Spesies wajib diisi") },
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                    focusedLabelColor = MaterialTheme.colorScheme.primary,
+                    unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    cursorColor = MaterialTheme.colorScheme.primary,
+                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface
+                )
             )
 
             // Gender Dropdown
@@ -181,7 +206,16 @@ fun AddReptileScreen(
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
                     modifier = Modifier
                         .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryEditable, true)
-                        .fillMaxWidth()
+                        .fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                        focusedLabelColor = MaterialTheme.colorScheme.primary,
+                        unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        cursorColor = MaterialTheme.colorScheme.primary,
+                        focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onSurface
+                    )
                 )
                 ExposedDropdownMenu(
                     expanded = expanded,
@@ -212,7 +246,16 @@ fun AddReptileScreen(
                         Icon(Icons.Default.DateRange, contentDescription = "Pilih Tanggal")
                     }
                 },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                    focusedLabelColor = MaterialTheme.colorScheme.primary,
+                    unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    cursorColor = MaterialTheme.colorScheme.primary,
+                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface
+                )
             )
 
             OutlinedTextField(
@@ -225,7 +268,16 @@ fun AddReptileScreen(
                         Icon(Icons.Default.DateRange, contentDescription = "Pilih Tanggal")
                     }
                 },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                    focusedLabelColor = MaterialTheme.colorScheme.primary,
+                    unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    cursorColor = MaterialTheme.colorScheme.primary,
+                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface
+                )
             )
 
             Button(
@@ -246,7 +298,12 @@ fun AddReptileScreen(
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
-                enabled = name.isNotBlank() && species.isNotBlank()
+                enabled = name.isNotBlank() && species.isNotBlank(),
+                shape = RoundedCornerShape(10.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                )
             ) {
                 Text("Simpan")
             }

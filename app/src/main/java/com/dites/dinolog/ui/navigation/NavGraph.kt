@@ -49,6 +49,7 @@ sealed class Screen(val route: String) {
     object EditRiwayat : Screen("edit_riwayat/{reptileId}/{riwayatId}") {
         fun createRoute(reptileId: Long, riwayatId: Long) = "edit_riwayat/$reptileId/$riwayatId"
     }
+    object Settings : Screen("settings")
 }
 
 @Composable
@@ -70,7 +71,16 @@ fun NavGraph(
                 },
                 onNavigateToDetail = { reptileId ->
                     navController.navigate(Screen.ReptileDetail.createRoute(reptileId))
+                },
+                onNavigateToSettings = {
+                    navController.navigate(Screen.Settings.route)
                 }
+            )
+        }
+        composable(Screen.Settings.route) {
+            SettingsScreen(
+                navController = navController,
+                repository = repository
             )
         }
         composable(Screen.AddReptile.route) {

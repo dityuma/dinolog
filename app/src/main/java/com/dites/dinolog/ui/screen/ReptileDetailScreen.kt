@@ -1,5 +1,6 @@
 package com.dites.dinolog.ui.screen
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -13,6 +14,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.HealthAndSafety
 import androidx.compose.material.icons.filled.Restaurant
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -81,6 +83,7 @@ fun ReptileDetailScreen(
     val tabs = listOf("Tumbuh", "Makan", "Karapas", "Riwayat", "Brumasi")
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
                 title = { Text(reptile?.name ?: "Detail Reptil") },
@@ -88,7 +91,12 @@ fun ReptileDetailScreen(
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Kembali")
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background,
+                    titleContentColor = MaterialTheme.colorScheme.onBackground,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onBackground
+                )
             )
         },
         floatingActionButton = {
@@ -100,15 +108,19 @@ fun ReptileDetailScreen(
                 4 -> "Tambah Catatan Brumasi"
                 else -> "Tambah Record"
             }
-            FloatingActionButton(onClick = {
-                when (selectedTabIndex) {
-                    0 -> onNavigateToAddGrowth(reptileId)
-                    1 -> onNavigateToAddFeeding(reptileId)
-                    2 -> onNavigateToAddScute(reptileId)
-                    3 -> onNavigateToAddRiwayat(reptileId)
-                    4 -> onNavigateToAddBrumasi(reptileId)
-                }
-            }) {
+            FloatingActionButton(
+                onClick = {
+                    when (selectedTabIndex) {
+                        0 -> onNavigateToAddGrowth(reptileId)
+                        1 -> onNavigateToAddFeeding(reptileId)
+                        2 -> onNavigateToAddScute(reptileId)
+                        3 -> onNavigateToAddRiwayat(reptileId)
+                        4 -> onNavigateToAddBrumasi(reptileId)
+                    }
+                },
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
+            ) {
                 Icon(Icons.Default.Add, contentDescription = tooltip)
             }
         }
@@ -130,12 +142,32 @@ fun ReptileDetailScreen(
                 )
             }
 
-            ScrollableTabRow(selectedTabIndex = selectedTabIndex, edgePadding = 16.dp) {
+            ScrollableTabRow(
+                selectedTabIndex = selectedTabIndex,
+                edgePadding = 16.dp,
+                containerColor = MaterialTheme.colorScheme.background,
+                contentColor = MaterialTheme.colorScheme.primary,
+                indicator = { tabPositions ->
+                    TabRowDefaults.SecondaryIndicator(
+                        Modifier.tabIndicatorOffset(tabPositions[selectedTabIndex]),
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                },
+                divider = {}
+            ) {
                 tabs.forEachIndexed { index, title ->
                     Tab(
                         selected = selectedTabIndex == index,
                         onClick = { selectedTabIndex = index },
-                        text = { Text(title) }
+                        text = {
+                            Text(
+                                title,
+                                color = if (selectedTabIndex == index)
+                                    MaterialTheme.colorScheme.primary
+                                else
+                                    MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     )
                 }
             }
@@ -197,7 +229,9 @@ fun ReptileHeader(
             .fillMaxWidth()
             .padding(16.dp)
             .clickable { onEditClick() },
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+        shape = RoundedCornerShape(14.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
     ) {
         Box(modifier = Modifier.padding(16.dp)) {
             Icon(
@@ -211,39 +245,62 @@ fun ReptileHeader(
             )
             Column {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    AsyncImage(
-                        model = reptile.profilePhotoUri.takeIf { it.isNotEmpty() },
-                        contentDescription = null,
+                    Box(
                         modifier = Modifier
                             .size(80.dp)
                             .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.primary)
                             .clickable { onPhotoClick() },
-                        contentScale = ContentScale.Crop
-                    )
+                        contentAlignment = Alignment.Center
+                    ) {
+                        AsyncImage(
+                            model = reptile.profilePhotoUri.takeIf { it.isNotEmpty() },
+                            contentDescription = null,
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+                    }
                     Spacer(modifier = Modifier.width(16.dp))
                     Column {
-                        Text(text = reptile.name, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-                        Text(text = reptile.species, style = MaterialTheme.typography.bodyLarge)
+                        Text(
+                            text = reptile.name,
+                            style = MaterialTheme.typography.headlineMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            text = reptile.species,
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
                         val genderIndo = when(reptile.gender) {
                             "MALE" -> "Jantan"
                             "FEMALE" -> "Betina"
                             else -> "Tidak Diketahui"
                         }
-                        Text(text = "Jenis Kelamin: $genderIndo", style = MaterialTheme.typography.bodySmall)
-                        Text(text = "Umur: ${calculateDuration(reptile.birthDate)}", style = MaterialTheme.typography.bodySmall)
+                        Text(
+                            text = "Jenis Kelamin: $genderIndo",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            text = "Umur: ${calculateDuration(reptile.birthDate)}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
                         
                         reptile.acquireDate?.let { date ->
                             val acquireFormatter = remember { SimpleDateFormat("dd MMM yyyy", Locale("id", "ID")) }
                             Text(
                                 text = "Adopsi: ${acquireFormatter.format(Date(date))} (${calculateDuration(date)})",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     }
                 }
                 Spacer(modifier = Modifier.height(16.dp))
-                HorizontalDivider()
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -285,9 +342,27 @@ fun LogPhotoRow(
 
 @Composable
 fun StatItem(label: String, value: String) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(text = value, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-        Text(text = label, style = MaterialTheme.typography.labelSmall)
+    Surface(
+        color = MaterialTheme.colorScheme.surfaceVariant,
+        shape = RoundedCornerShape(8.dp),
+        modifier = Modifier.padding(4.dp)
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+        ) {
+            Text(
+                text = value,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
     }
 }
 
@@ -390,7 +465,10 @@ fun GrowthTab(
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { onEditLog(log.id) }
+                    .clickable { onEditLog(log.id) },
+                shape = RoundedCornerShape(14.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
             ) {
                 Box(modifier = Modifier.padding(16.dp)) {
                     Icon(
@@ -460,7 +538,10 @@ fun FeedingTab(logs: List<FeedingLogEntity>, onEditLog: (Long) -> Unit) {
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { onEditLog(log.id) }
+                    .clickable { onEditLog(log.id) },
+                shape = RoundedCornerShape(14.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
             ) {
                 Box(modifier = Modifier.padding(16.dp)) {
                     Icon(
@@ -509,21 +590,23 @@ fun ScuteTab(
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         items(logs) { log ->
-            val color = when (log.condition) {
-                "PIRAMIDING" -> Color(0xFFFFF3E0) // Warning Orange light
-                "SOFT_SHELL" -> MaterialTheme.colorScheme.errorContainer
+            val bgColor = when (log.condition) {
+                "PIRAMIDING" -> Color(0xFFFFF9C4).copy(alpha = 0.5f) // Yellow100 tint
+                "SOFT_SHELL" -> Color(0xFFFFCDD2) // Red100
                 else -> MaterialTheme.colorScheme.surface
             }
             val contentColor = when (log.condition) {
-                "PIRAMIDING" -> Color(0xFFE65100) // Warning Orange deep
-                "SOFT_SHELL" -> MaterialTheme.colorScheme.error
+                "PIRAMIDING" -> Color(0xFFFFA726) // Orange400
+                "SOFT_SHELL" -> Color(0xFFEF5350) // Red400
                 else -> MaterialTheme.colorScheme.onSurface
             }
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable { onEditLog(log.id) },
-                colors = CardDefaults.cardColors(containerColor = color)
+                shape = RoundedCornerShape(14.dp),
+                colors = CardDefaults.cardColors(containerColor = bgColor),
+                border = BorderStroke(1.dp, if (log.condition == "NORMAL") MaterialTheme.colorScheme.outline else contentColor.copy(alpha = 0.5f))
             ) {
                 Box(modifier = Modifier.padding(16.dp)) {
                     Icon(
@@ -587,7 +670,12 @@ fun CareTab(
             }
         }
         items(soakingLogs.take(5)) { log ->
-            Card(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+            Card(
+                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                shape = RoundedCornerShape(14.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
+            ) {
                 Column(modifier = Modifier.padding(12.dp)) {
                     Text(dateFormatter.format(Date(log.soakingDate)), style = MaterialTheme.typography.labelSmall)
                     Text("Durasi: ${log.durationMinutes} menit", fontWeight = FontWeight.Bold)
@@ -605,7 +693,12 @@ fun CareTab(
             }
         }
         items(uvbLogs.take(5)) { log ->
-            Card(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+            Card(
+                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                shape = RoundedCornerShape(14.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
+            ) {
                 Column(modifier = Modifier.padding(12.dp)) {
                     Text(dateFormatter.format(Date(log.sessionDate)), style = MaterialTheme.typography.labelSmall)
                     Text("${log.uvbType} (${log.durationMinutes} menit)", fontWeight = FontWeight.Bold)
@@ -622,7 +715,12 @@ fun CareTab(
             }
         }
         items(dietLogs.take(5)) { log ->
-            Card(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+            Card(
+                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                shape = RoundedCornerShape(14.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
+            ) {
                 Column(modifier = Modifier.padding(12.dp)) {
                     Text(dateFormatter.format(Date(log.recordedAt)), style = MaterialTheme.typography.labelSmall)
                     Text("Sayur: ${log.vegetables}", fontWeight = FontWeight.Bold)
@@ -666,11 +764,14 @@ fun BrumasiTab(logs: List<BrumasiLogEntity>, onEditLog: (Long) -> Unit) {
     ) {
         items(logs) { log ->
             val isActive = log.endDate == null
+            val statusColor = if (isActive) Color(0xFFFFA726) else MaterialTheme.colorScheme.primary
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable { onEditLog(log.id) },
-                colors = if (isActive) CardDefaults.cardColors(containerColor = Color(0xFFFFF3E0)) else CardDefaults.cardColors()
+                shape = RoundedCornerShape(14.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                border = BorderStroke(1.dp, if (isActive) statusColor else MaterialTheme.colorScheme.outline)
             ) {
                 Box(modifier = Modifier.padding(16.dp)) {
                     Icon(
@@ -680,24 +781,31 @@ fun BrumasiTab(logs: List<BrumasiLogEntity>, onEditLog: (Long) -> Unit) {
                             .size(18.dp)
                             .align(Alignment.TopEnd)
                             .alpha(0f),
-                        tint = if (isActive) Color(0xFFE65100) else MaterialTheme.colorScheme.onSurfaceVariant
+                        tint = if (isActive) statusColor else MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Column {
-                        Text(
-                            text = if (isActive) "Sedang Brumasi" else "Selesai Brumasi",
-                            style = MaterialTheme.typography.labelLarge,
-                            color = if (isActive) Color(0xFFE65100) else MaterialTheme.colorScheme.primary
-                        )
+                        Surface(
+                            shape = RoundedCornerShape(4.dp),
+                            color = if (isActive) statusColor else MaterialTheme.colorScheme.primaryContainer
+                        ) {
+                            Text(
+                                text = if (isActive) "Sedang Brumasi" else "Selesai Brumasi",
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = if (isActive) Color.White else MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        }
                         Spacer(Modifier.height(4.dp))
                         Text(
                             text = "${dateFormatter.format(Date(log.startDate))} — ${log.endDate?.let { dateFormatter.format(Date(it)) } ?: "Berlangsung"}",
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                            log.weightBeforeGrams?.let { Text("Awal: ${it}g", style = MaterialTheme.typography.bodySmall) }
-                            log.weightAfterGrams?.let { Text("Akhir: ${it}g", style = MaterialTheme.typography.bodySmall) }
+                            log.weightBeforeGrams?.let { Text("Awal: ${it}g", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+                            log.weightAfterGrams?.let { Text("Akhir: ${it}g", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
                         }
-                        if (log.notes.isNotEmpty()) Text(log.notes, style = MaterialTheme.typography.bodySmall)
+                        if (log.notes.isNotEmpty()) Text(log.notes, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurface)
                     }
                 }
             }
@@ -748,7 +856,10 @@ fun RiwayatTab(
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { onEditRiwayat(riwayat.id) }
+                    .clickable { onEditRiwayat(riwayat.id) },
+                shape = RoundedCornerShape(14.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                border = BorderStroke(1.dp, if (riwayat.isOngoing) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.outline)
             ) {
                 Box(modifier = Modifier.padding(16.dp)) {
                     Icon(
@@ -770,25 +881,26 @@ fun RiwayatTab(
                                 text = riwayat.illnessName,
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.primary
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                             if (riwayat.isOngoing) {
                                 Surface(
                                     shape = RoundedCornerShape(4.dp),
-                                    color = MaterialTheme.colorScheme.errorContainer
+                                    color = MaterialTheme.colorScheme.error
                                 ) {
                                     Text(
                                         text = "Sedang Sakit",
                                         modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
                                         style = MaterialTheme.typography.labelSmall,
-                                        color = MaterialTheme.colorScheme.error
+                                        color = Color.White
                                     )
                                 }
                             }
                         }
                         Text(
                             text = dateFormatter.format(Date(riwayat.startDate)),
-                            style = MaterialTheme.typography.labelMedium
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         if (!riwayat.isOngoing && riwayat.endDate != null) {
                             Text(
@@ -802,6 +914,7 @@ fun RiwayatTab(
                             Text(
                                 text = riwayat.notes,
                                 style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurface,
                                 maxLines = 2,
                                 overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                             )

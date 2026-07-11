@@ -19,6 +19,9 @@ interface ReptileDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertReptile(reptile: ReptileEntity): Long
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertReptiles(reptiles: List<ReptileEntity>)
+
     @Update
     suspend fun updateReptile(reptile: ReptileEntity)
 
@@ -27,6 +30,9 @@ interface ReptileDao {
 
     @Query("SELECT COUNT(*) FROM reptiles")
     suspend fun getReptileCount(): Int
+
+    @Query("SELECT * FROM reptiles")
+    suspend fun getAllReptilesSync(): List<ReptileEntity>
 }
 
 // ─────────────────────────────────────────────
@@ -55,6 +61,9 @@ interface GrowthLogDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertLog(log: GrowthLogEntity): Long
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertLogs(logs: List<GrowthLogEntity>)
+
     @Update
     suspend fun updateLog(log: GrowthLogEntity)
 
@@ -63,6 +72,9 @@ interface GrowthLogDao {
 
     @Query("SELECT COUNT(*) FROM growth_logs WHERE reptileId = :reptileId")
     suspend fun getLogCount(reptileId: Long): Int
+
+    @Query("SELECT * FROM growth_logs WHERE reptileId = :reptileId")
+    suspend fun getLogsForReptileSync(reptileId: Long): List<GrowthLogEntity>
 }
 
 // Data class untuk query grafik (bukan entity Room)
@@ -111,11 +123,17 @@ interface FeedingLogDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertFeeding(feeding: FeedingLogEntity): Long
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertFeedings(feedings: List<FeedingLogEntity>)
+
     @Update
     suspend fun updateFeeding(feeding: FeedingLogEntity)
 
     @Delete
     suspend fun deleteFeeding(feeding: FeedingLogEntity)
+
+    @Query("SELECT * FROM feeding_logs WHERE reptileId = :reptileId")
+    suspend fun getFeedingsForReptileSync(reptileId: Long): List<FeedingLogEntity>
 }
 
 // ─────────────────────────────────────────────
@@ -132,11 +150,17 @@ interface ScuteLogDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertScuteLog(log: ScuteLogEntity): Long
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertScuteLogs(logs: List<ScuteLogEntity>)
+
     @Update
     suspend fun updateScuteLog(log: ScuteLogEntity)
 
     @Delete
     suspend fun deleteScuteLog(log: ScuteLogEntity)
+
+    @Query("SELECT * FROM scute_logs WHERE reptileId = :reptileId")
+    suspend fun getScuteLogsForReptileSync(reptileId: Long): List<ScuteLogEntity>
 }
 
 // ─────────────────────────────────────────────
@@ -174,11 +198,17 @@ interface SoakingLogDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertSoakingLog(log: SoakingLogEntity): Long
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertSoakingLogs(logs: List<SoakingLogEntity>)
+
     @Update
     suspend fun updateSoakingLog(log: SoakingLogEntity)
 
     @Delete
     suspend fun deleteSoakingLog(log: SoakingLogEntity)
+
+    @Query("SELECT * FROM soaking_logs WHERE reptileId = :reptileId")
+    suspend fun getSoakingLogsForReptileSync(reptileId: Long): List<SoakingLogEntity>
 }
 
 // ─────────────────────────────────────────────
@@ -195,11 +225,17 @@ interface BrumasiLogDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertBrumasiLog(log: BrumasiLogEntity): Long
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertBrumasiLogs(logs: List<BrumasiLogEntity>)
+
     @Update
     suspend fun updateBrumasiLog(log: BrumasiLogEntity)
 
     @Delete
     suspend fun deleteBrumasiLog(log: BrumasiLogEntity)
+
+    @Query("SELECT * FROM brumasi_logs WHERE reptileId = :reptileId")
+    suspend fun getBrumasiLogsForReptileSync(reptileId: Long): List<BrumasiLogEntity>
 }
 
 // ─────────────────────────────────────────────
@@ -213,11 +249,17 @@ interface UvbBasingLogDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertUvbLog(log: UvbBasingLogEntity): Long
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertUvbLogs(logs: List<UvbBasingLogEntity>)
+
     @Update
     suspend fun updateUvbLog(log: UvbBasingLogEntity)
 
     @Delete
     suspend fun deleteUvbLog(log: UvbBasingLogEntity)
+
+    @Query("SELECT * FROM uvb_basing_logs WHERE reptileId = :reptileId")
+    suspend fun getUvbLogsForReptileSync(reptileId: Long): List<UvbBasingLogEntity>
 }
 
 // ─────────────────────────────────────────────
@@ -231,11 +273,17 @@ interface DietLogDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertDietLog(log: DietLogEntity): Long
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertDietLogs(logs: List<DietLogEntity>)
+
     @Update
     suspend fun updateDietLog(log: DietLogEntity)
 
     @Delete
     suspend fun deleteDietLog(log: DietLogEntity)
+
+    @Query("SELECT * FROM diet_logs WHERE reptileId = :reptileId")
+    suspend fun getDietLogsForReptileSync(reptileId: Long): List<DietLogEntity>
 }
 
 // ─────────────────────────────────────────────
@@ -254,11 +302,17 @@ interface HealthRecordDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertHealthRecord(record: HealthRecordEntity): Long
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertHealthRecords(records: List<HealthRecordEntity>)
+
     @Update
     suspend fun updateHealthRecord(record: HealthRecordEntity)
 
     @Delete
     suspend fun deleteHealthRecord(record: HealthRecordEntity)
+
+    @Query("SELECT * FROM health_records WHERE reptileId = :reptileId")
+    suspend fun getHealthRecordsForReptileSync(reptileId: Long): List<HealthRecordEntity>
 }
 
 // ─────────────────────────────────────────────
@@ -275,11 +329,17 @@ interface RiwayatDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertRiwayat(riwayat: RiwayatEntity): Long
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertRiwayatLogs(logs: List<RiwayatEntity>)
+
     @Update
     suspend fun updateRiwayat(riwayat: RiwayatEntity)
 
     @Delete
     suspend fun deleteRiwayat(riwayat: RiwayatEntity)
+
+    @Query("SELECT * FROM riwayat_logs WHERE reptileId = :reptileId")
+    suspend fun getRiwayatForReptileSync(reptileId: Long): List<RiwayatEntity>
 }
 
 // ─────────────────────────────────────────────
