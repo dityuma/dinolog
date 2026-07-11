@@ -57,6 +57,7 @@ fun ReptileDetailScreen(
     onNavigateToAddFeeding: (Long) -> Unit,
     onNavigateToEditFeeding: (Long, Long) -> Unit,
     onNavigateToAddScute: (Long) -> Unit,
+    onNavigateToEditScute: (Long, Long) -> Unit,
     onNavigateToAddRiwayat: (Long) -> Unit,
     onNavigateToEditRiwayat: (Long, Long) -> Unit,
     onNavigateToAddBrumasi: (Long) -> Unit,
@@ -121,7 +122,6 @@ fun ReptileDetailScreen(
                 val latestLength = growthLogs.firstOrNull { it.lengthCm != null }?.lengthCm
                 ReptileHeader(
                     r,
-                    growthLogs.size,
                     latestWeight,
                     latestLength,
                     onPhotoClick = { if (r.profilePhotoUri.isNotEmpty()) previewPhotoUri = r.profilePhotoUri },
@@ -146,8 +146,10 @@ fun ReptileDetailScreen(
                 1 -> FeedingTab(feedingLogs) { logId ->
                     onNavigateToEditFeeding(reptileId, logId)
                 }
-                2 -> ScuteTab(scuteLogs, viewModel) { uri -> previewPhotoUri = uri }
-                3 -> RiwayatTab(riwayatLogs) { riwayatId ->
+                2 -> ScuteTab(scuteLogs, viewModel, { uri -> previewPhotoUri = uri }) { logId ->
+                    onNavigateToEditScute(reptileId, logId)
+                }
+                3 -> RiwayatTab(riwayatLogs, viewModel, { uri -> previewPhotoUri = uri }) { riwayatId ->
                     onNavigateToEditRiwayat(reptileId, riwayatId)
                 }
                 4 -> BrumasiTab(brumasiLogs)
@@ -182,7 +184,6 @@ fun ReptileDetailScreen(
 @Composable
 fun ReptileHeader(
     reptile: ReptileEntity,
-    logCount: Int,
     latestWeight: Float?,
     latestLength: Float?,
     onPhotoClick: () -> Unit,
@@ -243,9 +244,8 @@ fun ReptileHeader(
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    StatItem(label = "Total Catatan", value = logCount.toString())
                     StatItem(label = "Berat Terkini", value = latestWeight?.let { "${it} gram" } ?: "-")
                     StatItem(label = "Panjang Terkini", value = latestLength?.let { "${it} cm" } ?: "-")
                 }
@@ -490,7 +490,8 @@ fun FeedingTab(logs: List<FeedingLogEntity>, onEditLog: (Long) -> Unit) {
 fun ScuteTab(
     logs: List<ScuteLogEntity>,
     viewModel: ReptileDetailViewModel,
-    onPhotoClick: (String) -> Unit
+    onPhotoClick: (String) -> Unit,
+    onEditLog: (Long) -> Unit
 ) {
     val dateFormatter = remember { SimpleDateFormat("dd MMM yyyy", Locale.getDefault()) }
     if (logs.isEmpty()) {
@@ -516,31 +517,44 @@ fun ScuteTab(
                 else -> MaterialTheme.colorScheme.onSurface
             }
             Card(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onEditLog(log.id) },
                 colors = CardDefaults.cardColors(containerColor = color)
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(text = dateFormatter.format(Date(log.recordedAt)), style = MaterialTheme.typography.labelMedium)
-                    val conditionIndo = when(log.condition) {
-                        "NORMAL" -> "Normal"
-                        "PIRAMIDING" -> "Piramiding"
-                        "SOFT_SHELL" -> "Shell Lunak"
-                        "RETAK" -> "Retak / Luka"
-                        "JAMUR" -> "Jamur / Bercak"
-                        else -> log.condition
-                    }
-                    Text(
-                        text = "Kondisi: $conditionIndo",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = contentColor
+                Box(modifier = Modifier.padding(16.dp)) {
+                    Icon(
+                        Icons.Default.Edit,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(18.dp)
+                            .align(Alignment.TopEnd)
+                            .alpha(0f),
+                        tint = contentColor
                     )
-                    if (log.notes.isNotEmpty()) {
-                        Text(text = log.notes, color = contentColor)
-                    }
+                    Column {
+                        Text(text = dateFormatter.format(Date(log.recordedAt)), style = MaterialTheme.typography.labelMedium)
+                        val conditionIndo = when(log.condition) {
+                            "NORMAL" -> "Normal"
+                            "PIRAMIDING" -> "Piramiding"
+                            "SOFT_SHELL" -> "Shell Lunak"
+                            "RETAK" -> "Retak / Luka"
+                            "JAMUR" -> "Jamur / Bercak"
+                            else -> log.condition
+                        }
+                        Text(
+                            text = "Kondisi: $conditionIndo",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = contentColor
+                        )
+                        if (log.notes.isNotEmpty()) {
+                            Text(text = log.notes, color = contentColor)
+                        }
 
-                    val photos by viewModel.getPhotosForScuteLog(log.id).collectAsState(initial = emptyList())
-                    LogPhotoRow(photos = photos.map { it.photoUri }, onPhotoClick = onPhotoClick)
+                        val photos by viewModel.getPhotosForScuteLog(log.id).collectAsState(initial = emptyList())
+                        LogPhotoRow(photos = photos.map { it.photoUri }, onPhotoClick = onPhotoClick)
+                    }
                 }
             }
         }
@@ -679,7 +693,12 @@ fun BrumasiTab(logs: List<BrumasiLogEntity>) {
 }
 
 @Composable
-fun RiwayatTab(logs: List<RiwayatEntity>, onEditRiwayat: (Long) -> Unit) {
+fun RiwayatTab(
+    logs: List<RiwayatEntity>,
+    viewModel: ReptileDetailViewModel,
+    onPhotoClick: (String) -> Unit,
+    onEditRiwayat: (Long) -> Unit
+) {
     val dateFormatter = remember { SimpleDateFormat("dd MMM yyyy", Locale.getDefault()) }
     if (logs.isEmpty()) {
         Column(
@@ -774,6 +793,9 @@ fun RiwayatTab(logs: List<RiwayatEntity>, onEditRiwayat: (Long) -> Unit) {
                                 overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                             )
                         }
+                        
+                        val photos by viewModel.getPhotosForRiwayat(riwayat.id).collectAsState(initial = emptyList())
+                        LogPhotoRow(photos = photos.map { it.photoUri }, onPhotoClick = onPhotoClick)
                     }
                 }
             }

@@ -22,9 +22,10 @@ import com.dites.dinolog.data.local.entity.*
         DietLogEntity::class,
         HealthRecordEntity::class,
         ScutePhotoEntity::class,
-        RiwayatEntity::class
+        RiwayatEntity::class,
+        RiwayatPhotoEntity::class
     ],
-    version = 4,
+    version = 5,
     exportSchema = true
 )
 abstract class DinoLogDatabase : RoomDatabase() {
@@ -41,6 +42,7 @@ abstract class DinoLogDatabase : RoomDatabase() {
     abstract fun healthRecordDao(): HealthRecordDao
     abstract fun scutePhotoDao(): ScutePhotoDao
     abstract fun riwayatDao(): RiwayatDao
+    abstract fun riwayatPhotoDao(): RiwayatPhotoDao
 
     companion object {
         @Volatile
@@ -201,6 +203,23 @@ abstract class DinoLogDatabase : RoomDatabase() {
             }
         }
 
+        val MIGRATION_4_5 = object : Migration(4, 5) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("""
+                    CREATE TABLE IF NOT EXISTS riwayat_photos (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        riwayatId INTEGER NOT NULL,
+                        photoUri TEXT NOT NULL,
+                        takenAt INTEGER NOT NULL,
+                        FOREIGN KEY(riwayatId) REFERENCES riwayat_logs(id) ON DELETE CASCADE
+                    )
+                """)
+                database.execSQL(
+                    "CREATE INDEX IF NOT EXISTS index_riwayat_photos_riwayatId ON riwayat_photos(riwayatId)"
+                )
+            }
+        }
+
         fun getInstance(context: Context): DinoLogDatabase {
             return INSTANCE ?: synchronized(this) {
                 Room.databaseBuilder(
@@ -208,7 +227,7 @@ abstract class DinoLogDatabase : RoomDatabase() {
                     DinoLogDatabase::class.java,
                     "dinolog.db"
                 )
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
                     .build()
                     .also { INSTANCE = it }
             }

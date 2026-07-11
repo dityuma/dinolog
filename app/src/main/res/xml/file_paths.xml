@@ -3,4 +3,5 @@
     <files-path name="profile_photos" path="profile_photos/"/>
     <files-path name="growth_photos" path="growth_photos/"/>
     <files-path name="scute_photos" path="scute_photos/"/>
+    <files-path name="riwayat_photos" path="riwayat_photos/"/>
 </paths>

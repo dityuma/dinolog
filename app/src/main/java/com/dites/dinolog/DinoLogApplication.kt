@@ -19,7 +19,8 @@ class DinoLogApplication : Application() {
             database.dietLogDao(),
             database.healthRecordDao(),
             database.scutePhotoDao(),
-            database.riwayatDao()
+            database.riwayatDao(),
+            database.riwayatPhotoDao()
         )
     }
 }

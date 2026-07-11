@@ -281,3 +281,24 @@ interface RiwayatDao {
     @Delete
     suspend fun deleteRiwayat(riwayat: RiwayatEntity)
 }
+
+// ─────────────────────────────────────────────
+// RiwayatPhotoDao
+// ─────────────────────────────────────────────
+@Dao
+interface RiwayatPhotoDao {
+    @Query("SELECT * FROM riwayat_photos WHERE riwayatId = :riwayatId ORDER BY takenAt ASC")
+    fun getPhotosForRiwayat(riwayatId: Long): Flow<List<RiwayatPhotoEntity>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertPhoto(photo: RiwayatPhotoEntity): Long
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertPhotos(photos: List<RiwayatPhotoEntity>)
+
+    @Delete
+    suspend fun deletePhoto(photo: RiwayatPhotoEntity)
+
+    @Query("DELETE FROM riwayat_photos WHERE riwayatId = :riwayatId")
+    suspend fun deletePhotosForRiwayat(riwayatId: Long)
+}

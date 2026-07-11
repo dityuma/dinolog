@@ -250,6 +250,26 @@ data class RiwayatEntity(
 )
 
 // ─────────────────────────────────────────────
+// RiwayatPhoto — foto dokumentasi sakit (many-to-one)
+// ─────────────────────────────────────────────
+@Entity(
+    tableName = "riwayat_photos",
+    foreignKeys = [ForeignKey(
+        entity = RiwayatEntity::class,
+        parentColumns = ["id"],
+        childColumns = ["riwayatId"],
+        onDelete = ForeignKey.CASCADE
+    )],
+    indices = [Index("riwayatId")]
+)
+data class RiwayatPhotoEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val riwayatId: Long,
+    val photoUri: String,
+    val takenAt: Long = System.currentTimeMillis()
+)
+
+// ─────────────────────────────────────────────
 // HealthRecord — catatan kesehatan & reminder
 // ─────────────────────────────────────────────
 @Entity(

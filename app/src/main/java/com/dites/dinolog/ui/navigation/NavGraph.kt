@@ -92,6 +92,7 @@ fun NavGraph(
                 onNavigateToAddFeeding = { id -> navController.navigate(Screen.AddFeedingLog.createRoute(id)) },
                 onNavigateToEditFeeding = { rid, lid -> navController.navigate(Screen.EditFeedingLog.createRoute(rid, lid)) },
                 onNavigateToAddScute = { id -> navController.navigate(Screen.AddScuteLog.createRoute(id)) },
+                onNavigateToEditScute = { rid, lid -> navController.navigate(Screen.EditScuteLog.createRoute(rid, lid)) },
                 onNavigateToAddRiwayat = { id -> navController.navigate(Screen.AddRiwayat.createRoute(id)) },
                 onNavigateToEditRiwayat = { rid, lid -> navController.navigate(Screen.EditRiwayat.createRoute(rid, lid)) },
                 onNavigateToAddBrumasi = { id -> navController.navigate(Screen.AddBrumasiLog.createRoute(id)) },
@@ -154,6 +155,22 @@ fun NavGraph(
             val reptileId = backStackEntry.arguments?.getLong("reptileId") ?: return@composable
             AddScuteLogScreen(
                 reptileId = reptileId,
+                repository = repository,
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+        composable(
+            route = Screen.EditScuteLog.route,
+            arguments = listOf(
+                navArgument("reptileId") { type = NavType.LongType },
+                navArgument("logId") { type = NavType.LongType }
+            )
+        ) { backStackEntry ->
+            val reptileId = backStackEntry.arguments?.getLong("reptileId") ?: return@composable
+            val logId = backStackEntry.arguments?.getLong("logId") ?: return@composable
+            EditScuteLogScreen(
+                reptileId = reptileId,
+                logId = logId,
                 repository = repository,
                 onNavigateBack = { navController.popBackStack() }
             )

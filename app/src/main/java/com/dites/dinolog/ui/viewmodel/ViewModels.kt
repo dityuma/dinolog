@@ -62,6 +62,9 @@ class ReptileDetailViewModel(
     val riwayatLogs = repository.getRiwayat(reptileId)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    val healthRecords = repository.getHealthRecords(reptileId)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
     val weightHistory = repository.getWeightHistory(reptileId)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
@@ -148,6 +151,38 @@ class ReptileDetailViewModel(
     }
     fun deleteRiwayat(riwayat: RiwayatEntity) = viewModelScope.launch {
         repository.deleteRiwayat(riwayat)
+    }
+
+    fun getPhotosForRiwayat(riwayatId: Long): Flow<List<RiwayatPhotoEntity>> =
+        repository.getPhotosForRiwayat(riwayatId)
+
+    fun addRiwayatWithPhotos(riwayat: RiwayatEntity, photoUris: List<String>) =
+        viewModelScope.launch {
+            val riwayatId = repository.addRiwayat(riwayat)
+            if (photoUris.isNotEmpty()) {
+                val photos = photoUris.map { RiwayatPhotoEntity(riwayatId = riwayatId, photoUri = it) }
+                repository.addRiwayatPhotos(photos)
+            }
+        }
+
+    fun deleteRiwayatPhoto(photo: RiwayatPhotoEntity) = viewModelScope.launch {
+        repository.deleteRiwayatPhoto(photo)
+    }
+
+    fun addRiwayatPhotos(photos: List<RiwayatPhotoEntity>) = viewModelScope.launch {
+        repository.addRiwayatPhotos(photos)
+    }
+
+    fun addHealthRecord(record: HealthRecordEntity) = viewModelScope.launch {
+        repository.addHealthRecord(record)
+    }
+
+    fun updateHealthRecord(record: HealthRecordEntity) = viewModelScope.launch {
+        repository.updateHealthRecord(record)
+    }
+
+    fun deleteHealthRecord(record: HealthRecordEntity) = viewModelScope.launch {
+        repository.deleteHealthRecord(record)
     }
 }
 
