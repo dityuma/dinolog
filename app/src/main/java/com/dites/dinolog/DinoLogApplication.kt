@@ -18,7 +18,8 @@ class DinoLogApplication : Application() {
             database.uvbBasingLogDao(),
             database.dietLogDao(),
             database.healthRecordDao(),
-            database.scutePhotoDao()
+            database.scutePhotoDao(),
+            database.riwayatDao()
         )
     }
 }

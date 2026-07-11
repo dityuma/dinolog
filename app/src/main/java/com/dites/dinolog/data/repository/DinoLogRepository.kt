@@ -15,7 +15,8 @@ class DinoLogRepository(
     private val uvbBasingLogDao: UvbBasingLogDao,
     private val dietLogDao: DietLogDao,
     private val healthRecordDao: HealthRecordDao,
-    private val scutePhotoDao: ScutePhotoDao
+    private val scutePhotoDao: ScutePhotoDao,
+    private val riwayatDao: RiwayatDao
 ) {
 
     // ── Reptile ──────────────────────────────
@@ -150,4 +151,11 @@ class DinoLogRepository(
 
     suspend fun deleteHealthRecord(record: HealthRecordEntity) =
         healthRecordDao.deleteHealthRecord(record)
+
+    // ── Riwayat Log ──────────────────────────
+    fun getRiwayat(reptileId: Long) = riwayatDao.getRiwayatForReptile(reptileId)
+    suspend fun getActiveIllness(reptileId: Long) = riwayatDao.getActiveIllness(reptileId)
+    suspend fun addRiwayat(riwayat: RiwayatEntity) = riwayatDao.insertRiwayat(riwayat)
+    suspend fun updateRiwayat(riwayat: RiwayatEntity) = riwayatDao.updateRiwayat(riwayat)
+    suspend fun deleteRiwayat(riwayat: RiwayatEntity) = riwayatDao.deleteRiwayat(riwayat)
 }

@@ -74,7 +74,7 @@ fun AddFeedingLogScreen(
                 value = foodType,
                 onValueChange = { foodType = it },
                 label = { Text("Jenis Makanan") },
-                placeholder = { Text("e.g. Kangkung") },
+                placeholder = { Text("e.g. Fumak") },
                 modifier = Modifier.fillMaxWidth()
             )
 

@@ -226,6 +226,30 @@ data class DietLogEntity(
 )
 
 // ─────────────────────────────────────────────
+// RiwayatLog — Riwayat Sakit (Refactor Kesehatan)
+// ─────────────────────────────────────────────
+@Entity(
+    tableName = "riwayat_logs",
+    foreignKeys = [ForeignKey(
+        entity = ReptileEntity::class,
+        parentColumns = ["id"],
+        childColumns = ["reptileId"],
+        onDelete = ForeignKey.CASCADE
+    )],
+    indices = [Index("reptileId")]
+)
+data class RiwayatEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val reptileId: Long,
+    val illnessName: String,
+    val notes: String = "",
+    val startDate: Long = System.currentTimeMillis(),
+    val isOngoing: Boolean = false,
+    val endDate: Long? = null,
+    val createdAt: Long = System.currentTimeMillis()
+)
+
+// ─────────────────────────────────────────────
 // HealthRecord — catatan kesehatan & reminder
 // ─────────────────────────────────────────────
 @Entity(

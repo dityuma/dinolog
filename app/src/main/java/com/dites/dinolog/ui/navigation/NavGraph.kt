@@ -34,11 +34,17 @@ sealed class Screen(val route: String) {
     object AddScuteLog : Screen("add_scute_log/{reptileId}") {
         fun createRoute(reptileId: Long) = "add_scute_log/$reptileId"
     }
+    object EditScuteLog : Screen("edit_scute_log/{reptileId}/{logId}") {
+        fun createRoute(reptileId: Long, logId: Long) = "edit_scute_log/$reptileId/$logId"
+    }
     object AddBrumasiLog : Screen("add_brumasi_log/{reptileId}") {
         fun createRoute(reptileId: Long) = "add_brumasi_log/$reptileId"
     }
-    object AddHealthRecord : Screen("add_health_record/{reptileId}") {
-        fun createRoute(reptileId: Long) = "add_health_record/$reptileId"
+    object AddRiwayat : Screen("add_riwayat/{reptileId}") {
+        fun createRoute(reptileId: Long) = "add_riwayat/$reptileId"
+    }
+    object EditRiwayat : Screen("edit_riwayat/{reptileId}/{riwayatId}") {
+        fun createRoute(reptileId: Long, riwayatId: Long) = "edit_riwayat/$reptileId/$riwayatId"
     }
 }
 
@@ -86,7 +92,8 @@ fun NavGraph(
                 onNavigateToAddFeeding = { id -> navController.navigate(Screen.AddFeedingLog.createRoute(id)) },
                 onNavigateToEditFeeding = { rid, lid -> navController.navigate(Screen.EditFeedingLog.createRoute(rid, lid)) },
                 onNavigateToAddScute = { id -> navController.navigate(Screen.AddScuteLog.createRoute(id)) },
-                onNavigateToAddHealth = { id -> navController.navigate(Screen.AddHealthRecord.createRoute(id)) },
+                onNavigateToAddRiwayat = { id -> navController.navigate(Screen.AddRiwayat.createRoute(id)) },
+                onNavigateToEditRiwayat = { rid, lid -> navController.navigate(Screen.EditRiwayat.createRoute(rid, lid)) },
                 onNavigateToAddBrumasi = { id -> navController.navigate(Screen.AddBrumasiLog.createRoute(id)) },
                 onNavigateToEditReptile = { id -> navController.navigate(Screen.EditReptile.createRoute(id)) }
             )
@@ -163,12 +170,28 @@ fun NavGraph(
             )
         }
         composable(
-            route = Screen.AddHealthRecord.route,
+            route = Screen.AddRiwayat.route,
             arguments = listOf(navArgument("reptileId") { type = NavType.LongType })
         ) { backStackEntry ->
             val reptileId = backStackEntry.arguments?.getLong("reptileId") ?: return@composable
-            AddHealthRecordScreen(
+            AddRiwayatScreen(
                 reptileId = reptileId,
+                repository = repository,
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+        composable(
+            route = Screen.EditRiwayat.route,
+            arguments = listOf(
+                navArgument("reptileId") { type = NavType.LongType },
+                navArgument("riwayatId") { type = NavType.LongType }
+            )
+        ) { backStackEntry ->
+            val reptileId = backStackEntry.arguments?.getLong("reptileId") ?: return@composable
+            val riwayatId = backStackEntry.arguments?.getLong("riwayatId") ?: return@composable
+            EditRiwayatScreen(
+                reptileId = reptileId,
+                riwayatId = riwayatId,
                 repository = repository,
                 onNavigateBack = { navController.popBackStack() }
             )

@@ -260,3 +260,24 @@ interface HealthRecordDao {
     @Delete
     suspend fun deleteHealthRecord(record: HealthRecordEntity)
 }
+
+// ─────────────────────────────────────────────
+// RiwayatDao
+// ─────────────────────────────────────────────
+@Dao
+interface RiwayatDao {
+    @Query("SELECT * FROM riwayat_logs WHERE reptileId = :reptileId ORDER BY startDate DESC")
+    fun getRiwayatForReptile(reptileId: Long): Flow<List<RiwayatEntity>>
+
+    @Query("SELECT * FROM riwayat_logs WHERE reptileId = :reptileId AND isOngoing = 1 LIMIT 1")
+    suspend fun getActiveIllness(reptileId: Long): RiwayatEntity?
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertRiwayat(riwayat: RiwayatEntity): Long
+
+    @Update
+    suspend fun updateRiwayat(riwayat: RiwayatEntity)
+
+    @Delete
+    suspend fun deleteRiwayat(riwayat: RiwayatEntity)
+}

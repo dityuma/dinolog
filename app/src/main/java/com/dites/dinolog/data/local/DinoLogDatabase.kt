@@ -21,9 +21,10 @@ import com.dites.dinolog.data.local.entity.*
         UvbBasingLogEntity::class,
         DietLogEntity::class,
         HealthRecordEntity::class,
-        ScutePhotoEntity::class
+        ScutePhotoEntity::class,
+        RiwayatEntity::class
     ],
-    version = 3,
+    version = 4,
     exportSchema = true
 )
 abstract class DinoLogDatabase : RoomDatabase() {
@@ -39,6 +40,7 @@ abstract class DinoLogDatabase : RoomDatabase() {
     abstract fun dietLogDao(): DietLogDao
     abstract fun healthRecordDao(): HealthRecordDao
     abstract fun scutePhotoDao(): ScutePhotoDao
+    abstract fun riwayatDao(): RiwayatDao
 
     companion object {
         @Volatile
@@ -178,6 +180,27 @@ abstract class DinoLogDatabase : RoomDatabase() {
             }
         }
 
+        val MIGRATION_3_4 = object : Migration(3, 4) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("""
+                    CREATE TABLE IF NOT EXISTS riwayat_logs (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        reptileId INTEGER NOT NULL,
+                        illnessName TEXT NOT NULL,
+                        notes TEXT NOT NULL DEFAULT '',
+                        startDate INTEGER NOT NULL,
+                        isOngoing INTEGER NOT NULL DEFAULT 0,
+                        endDate INTEGER,
+                        createdAt INTEGER NOT NULL,
+                        FOREIGN KEY(reptileId) REFERENCES reptiles(id) ON DELETE CASCADE
+                    )
+                """)
+                database.execSQL(
+                    "CREATE INDEX IF NOT EXISTS index_riwayat_logs_reptileId ON riwayat_logs(reptileId)"
+                )
+            }
+        }
+
         fun getInstance(context: Context): DinoLogDatabase {
             return INSTANCE ?: synchronized(this) {
                 Room.databaseBuilder(
@@ -185,7 +208,7 @@ abstract class DinoLogDatabase : RoomDatabase() {
                     DinoLogDatabase::class.java,
                     "dinolog.db"
                 )
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
                     .build()
                     .also { INSTANCE = it }
             }

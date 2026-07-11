@@ -59,7 +59,7 @@ class ReptileDetailViewModel(
     val dietLogs = repository.getDietLogs(reptileId)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    val healthRecords = repository.getHealthRecords(reptileId)
+    val riwayatLogs = repository.getRiwayat(reptileId)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val weightHistory = repository.getWeightHistory(reptileId)
@@ -118,7 +118,13 @@ class ReptileDetailViewModel(
         }
     }
 
+    fun updateScuteLog(log: ScuteLogEntity) = viewModelScope.launch { repository.updateScuteLog(log) }
+
     fun deleteScuteLog(log: ScuteLogEntity) = viewModelScope.launch { repository.deleteScuteLog(log) }
+
+    fun addScutePhotos(photos: List<ScutePhotoEntity>) = viewModelScope.launch { repository.addScutePhotos(photos) }
+
+    fun deleteScutePhoto(photo: ScutePhotoEntity) = viewModelScope.launch { repository.deleteScutePhoto(photo) }
 
     fun addSoakingLog(log: SoakingLogEntity) = viewModelScope.launch { repository.addSoakingLog(log) }
     fun deleteSoakingLog(log: SoakingLogEntity) = viewModelScope.launch { repository.deleteSoakingLog(log) }
@@ -134,12 +140,14 @@ class ReptileDetailViewModel(
     fun updateDietLog(log: DietLogEntity) = viewModelScope.launch { repository.updateDietLog(log) }
     fun deleteDietLog(log: DietLogEntity) = viewModelScope.launch { repository.deleteDietLog(log) }
 
-    fun addHealthRecord(record: HealthRecordEntity) = viewModelScope.launch {
-        repository.addHealthRecord(record)
+    fun addRiwayat(riwayat: RiwayatEntity) = viewModelScope.launch {
+        repository.addRiwayat(riwayat)
     }
-
-    fun deleteHealthRecord(record: HealthRecordEntity) = viewModelScope.launch {
-        repository.deleteHealthRecord(record)
+    fun updateRiwayat(riwayat: RiwayatEntity) = viewModelScope.launch {
+        repository.updateRiwayat(riwayat)
+    }
+    fun deleteRiwayat(riwayat: RiwayatEntity) = viewModelScope.launch {
+        repository.deleteRiwayat(riwayat)
     }
 }
 

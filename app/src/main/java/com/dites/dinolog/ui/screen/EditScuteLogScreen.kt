@@ -33,6 +33,7 @@ import androidx.core.net.toUri
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.dites.dinolog.data.local.entity.ScuteLogEntity
+import com.dites.dinolog.data.local.entity.ScutePhotoEntity
 import com.dites.dinolog.data.repository.DinoLogRepository
 import com.dites.dinolog.ui.viewmodel.ReptileDetailViewModel
 import com.dites.dinolog.ui.viewmodel.ReptileDetailViewModelFactory
@@ -43,8 +44,9 @@ import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddScuteLogScreen(
+fun EditScuteLogScreen(
     reptileId: Long,
+    logId: Long,
     repository: DinoLogRepository,
     onNavigateBack: () -> Unit,
     viewModel: ReptileDetailViewModel = viewModel(
@@ -52,10 +54,24 @@ fun AddScuteLogScreen(
     )
 ) {
     val context = LocalContext.current
-    var recordedAt by remember { mutableStateOf(System.currentTimeMillis()) }
+    val scuteLogs by viewModel.scuteLogs.collectAsState()
+    val log = scuteLogs.find { it.id == logId }
+    val existingPhotos by viewModel.getPhotosForScuteLog(logId).collectAsState(initial = emptyList())
+
+    var recordedAt by remember { mutableLongStateOf(System.currentTimeMillis()) }
     var condition by remember { mutableStateOf("NORMAL") }
     var notes by remember { mutableStateOf("") }
-    val photoUris = remember { mutableStateListOf<String>() }
+    
+    val newPhotoUris = remember { mutableStateListOf<String>() }
+    val photosToDelete = remember { mutableStateListOf<ScutePhotoEntity>() }
+
+    LaunchedEffect(log) {
+        log?.let {
+            recordedAt = it.recordedAt
+            condition = it.condition
+            notes = it.notes
+        }
+    }
 
     var showDatePicker by remember { mutableStateOf(false) }
     var showPhotoOptions by remember { mutableStateOf(false) }
@@ -64,18 +80,18 @@ fun AddScuteLogScreen(
     val cameraLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicture()
     ) { success ->
-        if (success && cameraPhotoUri != null && photoUris.size < 4) {
-            photoUris.add(cameraPhotoUri.toString())
+        if (success && cameraPhotoUri != null && (existingPhotos.size - photosToDelete.size + newPhotoUris.size) < 4) {
+            newPhotoUris.add(cameraPhotoUri.toString())
         }
     }
 
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri ->
-        if (uri != null && photoUris.size < 4) {
+        if (uri != null && (existingPhotos.size - photosToDelete.size + newPhotoUris.size) < 4) {
             val savedUri = saveScuteImageToInternalStorage(context, uri)
             if (savedUri != null) {
-                photoUris.add(savedUri.toString())
+                newPhotoUris.add(savedUri.toString())
             }
         }
     }
@@ -107,7 +123,7 @@ fun AddScuteLogScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Tambah Kondisi Karapas") },
+                title = { Text("Edit Kondisi Karapas") },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Kembali")
@@ -206,7 +222,8 @@ fun AddScuteLogScreen(
 
             Text(text = "Foto Karapas (maks. 4)", style = MaterialTheme.typography.labelLarge)
             
-            if (photoUris.size < 4) {
+            val totalPhotos = existingPhotos.size - photosToDelete.size + newPhotoUris.size
+            if (totalPhotos < 4) {
                 Button(
                     onClick = { showPhotoOptions = true }
                 ) {
@@ -214,12 +231,44 @@ fun AddScuteLogScreen(
                 }
             }
 
-            if (photoUris.isNotEmpty()) {
+            if (existingPhotos.isNotEmpty() || newPhotoUris.isNotEmpty()) {
                 LazyRow(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    items(photoUris) { uri ->
+                    // Show existing photos that are not marked for deletion
+                    items(existingPhotos.filter { it !in photosToDelete }) { photo ->
+                        Box(modifier = Modifier.size(64.dp)) {
+                            AsyncImage(
+                                model = photo.photoUri,
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .clip(RoundedCornerShape(8.dp)),
+                                contentScale = ContentScale.Crop
+                            )
+                            IconButton(
+                                onClick = { photosToDelete.add(photo) },
+                                modifier = Modifier
+                                    .size(24.dp)
+                                    .align(Alignment.TopEnd)
+                            ) {
+                                Surface(
+                                    shape = CircleShape,
+                                    color = MaterialTheme.colorScheme.error.copy(alpha = 0.8f)
+                                ) {
+                                    Text(
+                                        "×",
+                                        color = Color.White,
+                                        style = MaterialTheme.typography.labelSmall,
+                                        modifier = Modifier.padding(horizontal = 4.dp)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                    // Show new photos
+                    items(newPhotoUris) { uri ->
                         Box(modifier = Modifier.size(64.dp)) {
                             AsyncImage(
                                 model = uri,
@@ -230,7 +279,7 @@ fun AddScuteLogScreen(
                                 contentScale = ContentScale.Crop
                             )
                             IconButton(
-                                onClick = { photoUris.remove(uri) },
+                                onClick = { newPhotoUris.remove(uri) },
                                 modifier = Modifier
                                     .size(24.dp)
                                     .align(Alignment.TopEnd)
@@ -254,20 +303,26 @@ fun AddScuteLogScreen(
 
             Button(
                 onClick = {
-                    viewModel.addScuteLog(
-                        ScuteLogEntity(
-                            reptileId = reptileId,
-                            recordedAt = recordedAt,
-                            condition = condition,
-                            notes = notes
-                        ),
-                        photoUris.toList()
-                    )
-                    onNavigateBack()
+                    log?.let { current ->
+                        viewModel.updateScuteLog(
+                            current.copy(
+                                recordedAt = recordedAt,
+                                condition = condition,
+                                notes = notes
+                            )
+                        )
+                        // Handle photo changes
+                        photosToDelete.forEach { viewModel.deleteScutePhoto(it) }
+                        if (newPhotoUris.isNotEmpty()) {
+                            val newPhotos = newPhotoUris.map { ScutePhotoEntity(scuteLogId = logId, photoUri = it) }
+                            viewModel.addScutePhotos(newPhotos)
+                        }
+                        onNavigateBack()
+                    }
                 },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Simpan")
+                Text("Simpan Perubahan")
             }
         }
     }
@@ -323,16 +378,6 @@ fun AddScuteLogScreen(
             DatePicker(state = datePickerState)
         }
     }
-}
-
-private fun createScuteTempPictureUri(context: Context): Uri {
-    val tempFile = File(context.filesDir, "scute_photos/temp_${System.currentTimeMillis()}.jpg")
-    tempFile.parentFile?.mkdirs()
-    return FileProvider.getUriForFile(
-        context,
-        "com.dites.dinolog.fileprovider",
-        tempFile
-    )
 }
 
 private fun saveScuteImageToInternalStorage(context: Context, uri: Uri): Uri? {

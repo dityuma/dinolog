@@ -11,6 +11,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.HealthAndSafety
 import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -56,7 +57,8 @@ fun ReptileDetailScreen(
     onNavigateToAddFeeding: (Long) -> Unit,
     onNavigateToEditFeeding: (Long, Long) -> Unit,
     onNavigateToAddScute: (Long) -> Unit,
-    onNavigateToAddHealth: (Long) -> Unit,
+    onNavigateToAddRiwayat: (Long) -> Unit,
+    onNavigateToEditRiwayat: (Long, Long) -> Unit,
     onNavigateToAddBrumasi: (Long) -> Unit,
     onNavigateToEditReptile: (Long) -> Unit,
     viewModel: ReptileDetailViewModel = viewModel(
@@ -67,14 +69,14 @@ fun ReptileDetailScreen(
     val growthLogs by viewModel.growthLogs.collectAsState()
     val feedingLogs by viewModel.feedingLogs.collectAsState()
     val scuteLogs by viewModel.scuteLogs.collectAsState()
-    val healthRecords by viewModel.healthRecords.collectAsState()
+    val riwayatLogs by viewModel.riwayatLogs.collectAsState()
     val brumasiLogs by viewModel.brumasiLogs.collectAsState()
     val weightHistory by viewModel.weightHistory.collectAsState()
     val lengthHistory by viewModel.lengthHistory.collectAsState()
 
     var selectedTabIndex by remember { mutableIntStateOf(0) }
     var previewPhotoUri by remember { mutableStateOf<String?>(null) }
-    val tabs = listOf("Tumbuh", "Makan", "Karapas", "Kesehatan", "Brumasi")
+    val tabs = listOf("Tumbuh", "Makan", "Karapas", "Riwayat", "Brumasi")
 
     Scaffold(
         topBar = {
@@ -92,7 +94,7 @@ fun ReptileDetailScreen(
                 0 -> "Tambah Catatan Tumbuh"
                 1 -> "Tambah Catatan Makan"
                 2 -> "Tambah Kondisi Karapas"
-                3 -> "Tambah Catatan Kesehatan"
+                3 -> "Tambah Riwayat Sakit"
                 4 -> "Tambah Catatan Brumasi"
                 else -> "Tambah Record"
             }
@@ -101,7 +103,7 @@ fun ReptileDetailScreen(
                     0 -> onNavigateToAddGrowth(reptileId)
                     1 -> onNavigateToAddFeeding(reptileId)
                     2 -> onNavigateToAddScute(reptileId)
-                    3 -> onNavigateToAddHealth(reptileId)
+                    3 -> onNavigateToAddRiwayat(reptileId)
                     4 -> onNavigateToAddBrumasi(reptileId)
                 }
             }) {
@@ -145,7 +147,9 @@ fun ReptileDetailScreen(
                     onNavigateToEditFeeding(reptileId, logId)
                 }
                 2 -> ScuteTab(scuteLogs, viewModel) { uri -> previewPhotoUri = uri }
-                3 -> HealthTab(healthRecords)
+                3 -> RiwayatTab(riwayatLogs) { riwayatId ->
+                    onNavigateToEditRiwayat(reptileId, riwayatId)
+                }
                 4 -> BrumasiTab(brumasiLogs)
             }
         }
@@ -675,34 +679,101 @@ fun BrumasiTab(logs: List<BrumasiLogEntity>) {
 }
 
 @Composable
-fun HealthTab(records: List<HealthRecordEntity>) {
+fun RiwayatTab(logs: List<RiwayatEntity>, onEditRiwayat: (Long) -> Unit) {
     val dateFormatter = remember { SimpleDateFormat("dd MMM yyyy", Locale.getDefault()) }
+    if (logs.isEmpty()) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Icon(
+                Icons.Default.HealthAndSafety,
+                contentDescription = null,
+                modifier = Modifier.size(64.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+            )
+            Spacer(Modifier.height(16.dp))
+            Text(
+                "Belum ada riwayat sakit",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(
+                "Ketuk + untuk menambahkan riwayat",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+            )
+        }
+        return
+    }
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        items(records) { record ->
-            Card(modifier = Modifier.fillMaxWidth()) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(text = dateFormatter.format(Date(record.date)), style = MaterialTheme.typography.labelMedium)
-                    Text(text = record.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                    val typeIndo = when(record.type) {
-                        "VET_VISIT" -> "Kunjungan Dokter Hewan"
-                        "MEDICATION" -> "Pemberian Obat"
-                        "PARASITE_TREATMENT" -> "Antiparasit"
-                        else -> "Lainnya"
-                    }
-                    Text(text = "Jenis: $typeIndo", style = MaterialTheme.typography.bodySmall)
-                    if (record.notes.isNotEmpty()) {
-                        Text(text = record.notes)
-                    }
-                    record.nextReminderAt?.let {
+        items(logs) { riwayat ->
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onEditRiwayat(riwayat.id) }
+            ) {
+                Box(modifier = Modifier.padding(16.dp)) {
+                    Icon(
+                        Icons.Default.Edit,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(18.dp)
+                            .align(Alignment.TopEnd)
+                            .alpha(0f),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Column {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = riwayat.illnessName,
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            if (riwayat.isOngoing) {
+                                Surface(
+                                    shape = RoundedCornerShape(4.dp),
+                                    color = MaterialTheme.colorScheme.errorContainer
+                                ) {
+                                    Text(
+                                        text = "Sedang Sakit",
+                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.error
+                                    )
+                                }
+                            }
+                        }
                         Text(
-                            text = "Pengingat Berikutnya: ${dateFormatter.format(Date(it))}",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.secondary
+                            text = dateFormatter.format(Date(riwayat.startDate)),
+                            style = MaterialTheme.typography.labelMedium
                         )
+                        if (!riwayat.isOngoing && riwayat.endDate != null) {
+                            Text(
+                                text = "Sembuh: ${dateFormatter.format(Date(riwayat.endDate))}",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                            )
+                        }
+                        if (riwayat.notes.isNotEmpty()) {
+                            Spacer(Modifier.height(4.dp))
+                            Text(
+                                text = riwayat.notes,
+                                style = MaterialTheme.typography.bodySmall,
+                                maxLines = 2,
+                                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                            )
+                        }
                     }
                 }
             }
