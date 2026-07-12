@@ -101,6 +101,9 @@ interface GrowthPhotoDao {
 
     @Query("DELETE FROM growth_photos WHERE growthLogId = :logId")
     suspend fun deletePhotosForLog(logId: Long)
+
+    @Query("SELECT * FROM growth_photos WHERE growthLogId = :logId ORDER BY takenAt ASC")
+    suspend fun getPhotosForLogSync(logId: Long): List<GrowthPhotoEntity>
 }
 
 // ─────────────────────────────────────────────
@@ -182,6 +185,9 @@ interface ScutePhotoDao {
 
     @Query("DELETE FROM scute_photos WHERE scuteLogId = :scuteLogId")
     suspend fun deletePhotosForScuteLog(scuteLogId: Long)
+
+    @Query("SELECT * FROM scute_photos WHERE scuteLogId = :scuteLogId ORDER BY takenAt ASC")
+    suspend fun getPhotosForScuteLogSync(scuteLogId: Long): List<ScutePhotoEntity>
 }
 
 // ─────────────────────────────────────────────
@@ -361,4 +367,7 @@ interface RiwayatPhotoDao {
 
     @Query("DELETE FROM riwayat_photos WHERE riwayatId = :riwayatId")
     suspend fun deletePhotosForRiwayat(riwayatId: Long)
+
+    @Query("SELECT * FROM riwayat_photos WHERE riwayatId = :riwayatId ORDER BY takenAt ASC")
+    suspend fun getPhotosForRiwayatSync(riwayatId: Long): List<RiwayatPhotoEntity>
 }

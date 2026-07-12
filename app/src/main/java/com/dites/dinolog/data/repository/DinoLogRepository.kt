@@ -87,7 +87,13 @@ class DinoLogRepository(
     fun getPhotosForLog(logId: Long): Flow<List<GrowthPhotoEntity>> =
         growthPhotoDao.getPhotosForLog(logId)
 
+    suspend fun getPhotosForLogSync(logId: Long): List<GrowthPhotoEntity> =
+        growthPhotoDao.getPhotosForLogSync(logId)
+
     suspend fun addPhoto(photo: GrowthPhotoEntity): Long =
+        growthPhotoDao.insertPhoto(photo)
+
+    suspend fun insertGrowthPhoto(photo: GrowthPhotoEntity) =
         growthPhotoDao.insertPhoto(photo)
 
     suspend fun deletePhoto(photo: GrowthPhotoEntity) =
@@ -161,7 +167,9 @@ class DinoLogRepository(
 
     // ── Scute Photo (PRD v3) ────────────────
     fun getPhotosForScuteLog(scuteLogId: Long) = scutePhotoDao.getPhotosForScuteLog(scuteLogId)
+    suspend fun getPhotosForScuteLogSync(scuteLogId: Long) = scutePhotoDao.getPhotosForScuteLogSync(scuteLogId)
     suspend fun addScutePhoto(photo: ScutePhotoEntity) = scutePhotoDao.insertPhoto(photo)
+    suspend fun insertScutePhoto(photo: ScutePhotoEntity) = scutePhotoDao.insertPhoto(photo)
     suspend fun addScutePhotos(photos: List<ScutePhotoEntity>) = scutePhotoDao.insertPhotos(photos)
     suspend fun deleteScutePhoto(photo: ScutePhotoEntity) = scutePhotoDao.deletePhoto(photo)
 
@@ -198,7 +206,9 @@ class DinoLogRepository(
 
     // ── Riwayat Photo ────────────────────────
     fun getPhotosForRiwayat(riwayatId: Long) = riwayatPhotoDao.getPhotosForRiwayat(riwayatId)
+    suspend fun getPhotosForRiwayatSync(riwayatId: Long) = riwayatPhotoDao.getPhotosForRiwayatSync(riwayatId)
     suspend fun addRiwayatPhoto(photo: RiwayatPhotoEntity) = riwayatPhotoDao.insertPhoto(photo)
+    suspend fun insertRiwayatPhoto(photo: RiwayatPhotoEntity) = riwayatPhotoDao.insertPhoto(photo)
     suspend fun addRiwayatPhotos(photos: List<RiwayatPhotoEntity>) = riwayatPhotoDao.insertPhotos(photos)
     suspend fun deleteRiwayatPhoto(photo: RiwayatPhotoEntity) = riwayatPhotoDao.deletePhoto(photo)
 }

@@ -1,8 +1,11 @@
 package com.dites.dinolog.ui.viewmodel
 
+import android.content.ContentValues
 import android.content.Context
 import android.net.Uri
+import android.os.Build
 import android.os.Environment
+import android.provider.MediaStore
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -297,88 +300,229 @@ class SettingsViewModel(
 
     data class ExportData(
         val exportDate: String,
-        val version: Int,
-        val reptiles: List<ReptileWithLogs>
+        val appVersion: Int,
+        val reptiles: List<ReptileBackup>
     )
 
-    data class ReptileWithLogs(
+    data class ReptileBackup(
         val reptile: ReptileEntity,
-        val growthLogs: List<GrowthLogEntity>,
+        val growthLogs: List<GrowthLogBackup>,
         val feedingLogs: List<FeedingLogEntity>,
-        val scuteLogs: List<ScuteLogEntity>,
-        val riwayatLogs: List<RiwayatEntity>,
-        val brumasiLogs: List<BrumasiLogEntity>,
-        val uvbLogs: List<UvbBasingLogEntity>,
-        val dietLogs: List<DietLogEntity>,
-        val healthRecords: List<HealthRecordEntity>
+        val scuteLogs: List<ScuteLogBackup>,
+        val riwayatLogs: List<RiwayatBackup>,
+        val brumasiLogs: List<BrumasiLogEntity>
     )
 
-    fun exportData(onSuccess: (String) -> Unit, onError: () -> Unit) = viewModelScope.launch {
+    data class GrowthLogBackup(
+        val id: Long,
+        val reptileId: Long,
+        val recordedAt: Long,
+        val weightGrams: Float?,
+        val lengthCm: Float?,
+        val bodyCondition: String,
+        val notes: String,
+        val createdAt: Long,
+        val photos: List<GrowthPhotoEntity>
+    )
+
+    data class ScuteLogBackup(
+        val id: Long,
+        val reptileId: Long,
+        val recordedAt: Long,
+        val condition: String,
+        val notes: String,
+        val photos: List<ScutePhotoEntity>
+    )
+
+    data class RiwayatBackup(
+        val id: Long,
+        val reptileId: Long,
+        val illnessName: String,
+        val notes: String,
+        val startDate: Long,
+        val isOngoing: Boolean,
+        val endDate: Long?,
+        val createdAt: Long,
+        val photos: List<RiwayatPhotoEntity>
+    )
+
+    fun exportData(onSuccess: (String) -> Unit, onError: () -> Unit) = viewModelScope.launch(Dispatchers.IO) {
         _isLoading.value = true
         try {
             val allReptiles = repository.getAllReptilesSync()
-            val reptilesWithLogs = allReptiles.map { reptile ->
-                ReptileWithLogs(
+            val reptilesBackup = allReptiles.map { reptile ->
+                val growthLogs = repository.getGrowthLogsSync(reptile.id).map { log ->
+                    GrowthLogBackup(
+                        id = log.id,
+                        reptileId = log.reptileId,
+                        recordedAt = log.recordedAt,
+                        weightGrams = log.weightGrams,
+                        lengthCm = log.lengthCm,
+                        bodyCondition = log.bodyCondition,
+                        notes = log.notes,
+                        createdAt = log.createdAt,
+                        photos = repository.getPhotosForLogSync(log.id)
+                    )
+                }
+                val scuteLogs = repository.getScuteLogsSync(reptile.id).map { log ->
+                    ScuteLogBackup(
+                        id = log.id,
+                        reptileId = log.reptileId,
+                        recordedAt = log.recordedAt,
+                        condition = log.condition,
+                        notes = log.notes,
+                        photos = repository.getPhotosForScuteLogSync(log.id)
+                    )
+                }
+                val riwayatLogs = repository.getRiwayatSync(reptile.id).map { log ->
+                    RiwayatBackup(
+                        id = log.id,
+                        reptileId = log.reptileId,
+                        illnessName = log.illnessName,
+                        notes = log.notes,
+                        startDate = log.startDate,
+                        isOngoing = log.isOngoing,
+                        endDate = log.endDate,
+                        createdAt = log.createdAt,
+                        photos = repository.getPhotosForRiwayatSync(log.id)
+                    )
+                }
+
+                ReptileBackup(
                     reptile = reptile,
-                    growthLogs = repository.getGrowthLogsSync(reptile.id),
+                    growthLogs = growthLogs,
                     feedingLogs = repository.getFeedingLogsSync(reptile.id),
-                    scuteLogs = repository.getScuteLogsSync(reptile.id),
-                    riwayatLogs = repository.getRiwayatSync(reptile.id),
-                    brumasiLogs = repository.getBrumasiLogsSync(reptile.id),
-                    uvbLogs = repository.getUvbLogsSync(reptile.id),
-                    dietLogs = repository.getDietLogsSync(reptile.id),
-                    healthRecords = repository.getHealthRecordsSync(reptile.id)
+                    scuteLogs = scuteLogs,
+                    riwayatLogs = riwayatLogs,
+                    brumasiLogs = repository.getBrumasiLogsSync(reptile.id)
                 )
             }
 
             val exportData = ExportData(
                 exportDate = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault()).format(Date()),
-                version = 1,
-                reptiles = reptilesWithLogs
+                appVersion = 1,
+                reptiles = reptilesBackup
             )
 
             val jsonString = gson.toJson(exportData)
             val fileName = "dinolog_backup_${SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())}.json"
             
-            withContext(Dispatchers.IO) {
-                val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-                val file = File(downloadsDir, fileName)
-                FileOutputStream(file).use { it.write(jsonString.toByteArray()) }
+            saveJsonToDownloads(context, jsonString, fileName)
+            
+            withContext(Dispatchers.Main) {
+                onSuccess(fileName)
             }
-            onSuccess(fileName)
         } catch (e: Exception) {
             e.printStackTrace()
-            onError()
+            withContext(Dispatchers.Main) {
+                onError()
+            }
         } finally {
             _isLoading.value = false
         }
     }
 
-    fun importData(uri: Uri, onSuccess: () -> Unit, onError: () -> Unit) = viewModelScope.launch {
+    private fun saveJsonToDownloads(context: Context, json: String, fileName: String) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            val contentValues = ContentValues().apply {
+                put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
+                put(MediaStore.MediaColumns.MIME_TYPE, "application/json")
+                put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
+            }
+            val resolver = context.contentResolver
+            val uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, contentValues)
+            uri?.let {
+                resolver.openOutputStream(it)?.use { outputStream ->
+                    outputStream.write(json.toByteArray())
+                }
+            } ?: throw Exception("Failed to create MediaStore entry")
+        } else {
+            val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+            val file = File(downloadsDir, fileName)
+            FileOutputStream(file).use { it.write(json.toByteArray()) }
+        }
+    }
+
+    fun importData(uri: Uri, onSuccess: () -> Unit, onError: () -> Unit) = viewModelScope.launch(Dispatchers.IO) {
         _isLoading.value = true
         try {
-            val jsonString = withContext(Dispatchers.IO) {
-                context.contentResolver.openInputStream(uri)?.bufferedReader()?.use { it.readText() }
-            } ?: throw Exception("Cannot read file")
+            val jsonString = context.contentResolver.openInputStream(uri)?.bufferedReader()?.use { it.readText() }
+                ?: throw Exception("Cannot read file")
 
             val importData = gson.fromJson(jsonString, ExportData::class.java)
             
             importData.reptiles.forEach { item ->
                 repository.insertReptiles(listOf(item.reptile))
-                repository.insertGrowthLogs(item.growthLogs)
+                
+                // Growth
+                repository.insertGrowthLogs(item.growthLogs.map { log ->
+                    GrowthLogEntity(
+                        id = log.id,
+                        reptileId = log.reptileId,
+                        recordedAt = log.recordedAt,
+                        weightGrams = log.weightGrams,
+                        lengthCm = log.lengthCm,
+                        bodyCondition = log.bodyCondition,
+                        notes = log.notes,
+                        createdAt = log.createdAt
+                    )
+                })
+                item.growthLogs.forEach { log ->
+                    log.photos.forEach { photo ->
+                        repository.insertGrowthPhoto(photo)
+                    }
+                }
+                
+                // Feeding
                 repository.insertFeedingLogs(item.feedingLogs)
-                repository.insertScuteLogs(item.scuteLogs)
-                repository.insertRiwayatLogs(item.riwayatLogs)
+                
+                // Scute
+                repository.insertScuteLogs(item.scuteLogs.map { log ->
+                    ScuteLogEntity(
+                        id = log.id,
+                        reptileId = log.reptileId,
+                        recordedAt = log.recordedAt,
+                        condition = log.condition,
+                        notes = log.notes
+                    )
+                })
+                item.scuteLogs.forEach { log ->
+                    log.photos.forEach { photo ->
+                        repository.insertScutePhoto(photo)
+                    }
+                }
+                
+                // Riwayat
+                repository.insertRiwayatLogs(item.riwayatLogs.map { log ->
+                    RiwayatEntity(
+                        id = log.id,
+                        reptileId = log.reptileId,
+                        illnessName = log.illnessName,
+                        notes = log.notes,
+                        startDate = log.startDate,
+                        isOngoing = log.isOngoing,
+                        endDate = log.endDate,
+                        createdAt = log.createdAt
+                    )
+                })
+                item.riwayatLogs.forEach { log ->
+                    log.photos.forEach { photo ->
+                        repository.insertRiwayatPhoto(photo)
+                    }
+                }
+                
+                // Brumasi
                 repository.insertBrumasiLogs(item.brumasiLogs)
-                repository.insertUvbLogs(item.uvbLogs)
-                repository.insertDietLogs(item.dietLogs)
-                repository.insertHealthRecords(item.healthRecords)
             }
             
-            onSuccess()
+            withContext(Dispatchers.Main) {
+                onSuccess()
+            }
         } catch (e: Exception) {
             e.printStackTrace()
-            onError()
+            withContext(Dispatchers.Main) {
+                onError()
+            }
         } finally {
             _isLoading.value = false
         }
