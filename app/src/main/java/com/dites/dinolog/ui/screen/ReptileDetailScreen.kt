@@ -14,6 +14,9 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.HealthAndSafety
 import androidx.compose.material.icons.filled.Restaurant
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
+import androidx.compose.material.icons.filled.Shield
+import androidx.compose.material.icons.filled.Bedtime
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -22,9 +25,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -375,6 +380,15 @@ fun GrowthTab(
     onPhotoClick: (String) -> Unit,
     onEditLog: (Long) -> Unit
 ) {
+    if (logs.isEmpty()) {
+        TabEmptyState(
+            icon = Icons.AutoMirrored.Filled.TrendingUp,
+            title = "Belum ada catatan pertumbuhan",
+            subtitle = "Tambahkan 2 catatan atau lebih untuk melihat grafik pertumbuhan"
+        )
+        return
+    }
+
     var showWeight by remember { mutableStateOf(true) }
     val modelProducer = remember { CartesianChartModelProducer() }
     val dateFormatter = remember { SimpleDateFormat("MMM dd", Locale.getDefault()) }
@@ -502,29 +516,11 @@ fun GrowthTab(
 @Composable
 fun FeedingTab(logs: List<FeedingLogEntity>, onEditLog: (Long) -> Unit) {
     if (logs.isEmpty()) {
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Icon(
-                Icons.Default.Restaurant,
-                contentDescription = null,
-                modifier = Modifier.size(64.dp),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-            )
-            Spacer(Modifier.height(16.dp))
-            Text(
-                "Belum ada catatan makan",
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Text(
-                "Ketuk + untuk menambahkan catatan makan pertama",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-            )
-        }
+        TabEmptyState(
+            icon = Icons.Default.Restaurant,
+            title = "Belum ada catatan makan",
+            subtitle = "Ketuk + untuk menambahkan catatan makan pertama"
+        )
         return
     }
 
@@ -577,13 +573,16 @@ fun ScuteTab(
     onPhotoClick: (String) -> Unit,
     onEditLog: (Long) -> Unit
 ) {
-    val dateFormatter = remember { SimpleDateFormat("dd MMM yyyy", Locale.getDefault()) }
     if (logs.isEmpty()) {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text("Belum ada catatan kondisi karapas")
-        }
+        TabEmptyState(
+            icon = Icons.Default.Shield,
+            title = "Belum ada catatan karapas",
+            subtitle = "Ketuk + untuk menambahkan kondisi karapas pertama"
+        )
         return
     }
+
+    val dateFormatter = remember { SimpleDateFormat("dd MMM yyyy", Locale.getDefault()) }
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
@@ -750,13 +749,16 @@ fun CareSectionHeader(title: String, onAdd: () -> Unit) {
 
 @Composable
 fun BrumasiTab(logs: List<BrumasiLogEntity>, onEditLog: (Long) -> Unit) {
-    val dateFormatter = remember { SimpleDateFormat("dd MMM yyyy", Locale.getDefault()) }
     if (logs.isEmpty()) {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text("Belum ada catatan brumasi")
-        }
+        TabEmptyState(
+            icon = Icons.Default.Bedtime,
+            title = "Belum ada catatan brumasi",
+            subtitle = "Ketuk + untuk menambahkan catatan brumasi pertama"
+        )
         return
     }
+
+    val dateFormatter = remember { SimpleDateFormat("dd MMM yyyy", Locale.getDefault()) }
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
@@ -820,33 +822,16 @@ fun RiwayatTab(
     onPhotoClick: (String) -> Unit,
     onEditRiwayat: (Long) -> Unit
 ) {
-    val dateFormatter = remember { SimpleDateFormat("dd MMM yyyy", Locale.getDefault()) }
     if (logs.isEmpty()) {
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Icon(
-                Icons.Default.HealthAndSafety,
-                contentDescription = null,
-                modifier = Modifier.size(64.dp),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-            )
-            Spacer(Modifier.height(16.dp))
-            Text(
-                "Belum ada riwayat sakit",
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Text(
-                "Ketuk + untuk menambahkan riwayat",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-            )
-        }
+        TabEmptyState(
+            icon = Icons.Default.HealthAndSafety,
+            title = "Belum ada riwayat sakit",
+            subtitle = "Ketuk + untuk menambahkan riwayat"
+        )
         return
     }
+
+    val dateFormatter = remember { SimpleDateFormat("dd MMM yyyy", Locale.getDefault()) }
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
@@ -926,6 +911,41 @@ fun RiwayatTab(
                 }
             }
         }
+    }
+}
+
+@Composable
+fun TabEmptyState(
+    icon: ImageVector,
+    title: String,
+    subtitle: String
+) {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            modifier = Modifier.size(64.dp),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Spacer(Modifier.height(16.dp))
+        Text(
+            text = title,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Medium,
+            color = MaterialTheme.colorScheme.onBackground
+        )
+        Spacer(Modifier.height(8.dp))
+        Text(
+            text = subtitle,
+            fontSize = 13.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+            modifier = Modifier.padding(horizontal = 32.dp)
+        )
     }
 }
 
