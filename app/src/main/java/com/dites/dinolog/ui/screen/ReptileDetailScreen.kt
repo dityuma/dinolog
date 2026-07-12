@@ -11,6 +11,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.BrokenImage
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.HealthAndSafety
 import androidx.compose.material.icons.filled.Restaurant
@@ -27,13 +28,18 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import coil.compose.SubcomposeAsyncImage
+import coil.request.CachePolicy
+import coil.request.ImageRequest
 import com.patrykandpatrick.vico.compose.cartesian.CartesianChartHost
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberBottom
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberStart
@@ -74,14 +80,14 @@ fun ReptileDetailScreen(
         factory = ReptileDetailViewModelFactory(repository, reptileId)
     )
 ) {
-    val reptile by viewModel.reptile.collectAsState()
-    val growthLogs by viewModel.growthLogs.collectAsState()
-    val feedingLogs by viewModel.feedingLogs.collectAsState()
-    val scuteLogs by viewModel.scuteLogs.collectAsState()
-    val riwayatLogs by viewModel.riwayatLogs.collectAsState()
-    val brumasiLogs by viewModel.brumasiLogs.collectAsState()
-    val weightHistory by viewModel.weightHistory.collectAsState()
-    val lengthHistory by viewModel.lengthHistory.collectAsState()
+    val reptile by viewModel.reptile.collectAsStateWithLifecycle()
+    val growthLogs by viewModel.growthLogs.collectAsStateWithLifecycle()
+    val feedingLogs by viewModel.feedingLogs.collectAsStateWithLifecycle()
+    val scuteLogs by viewModel.scuteLogs.collectAsStateWithLifecycle()
+    val riwayatLogs by viewModel.riwayatLogs.collectAsStateWithLifecycle()
+    val brumasiLogs by viewModel.brumasiLogs.collectAsStateWithLifecycle()
+    val weightHistory by viewModel.weightHistory.collectAsStateWithLifecycle()
+    val lengthHistory by viewModel.lengthHistory.collectAsStateWithLifecycle()
 
     var selectedTabIndex by remember { mutableIntStateOf(0) }
     var previewPhotoUri by remember { mutableStateOf<String?>(null) }
@@ -136,12 +142,29 @@ fun ReptileDetailScreen(
                 .padding(padding)
         ) {
             reptile?.let { r ->
-                val latestWeight = growthLogs.firstOrNull { it.weightGrams != null }?.weightGrams
-                val latestLength = growthLogs.firstOrNull { it.lengthCm != null }?.lengthCm
+                val ageText = remember(r.birthDate) {
+                    r.birthDate?.let { calculateDuration(it) } ?: "-"
+                }
+                val acquireDateText = remember(r.acquireDate) {
+                    r.acquireDate?.let {
+                        val formatted = SimpleDateFormat("dd MMM yyyy", Locale("id", "ID")).format(Date(it))
+                        val duration = calculateDuration(it)
+                        "Adopsi: $formatted ($duration)"
+                    }
+                }
+                val latestWeight = remember(growthLogs) {
+                    growthLogs.firstOrNull { it.weightGrams != null }?.weightGrams?.let { "${it.toInt()} gram" } ?: "-"
+                }
+                val latestLength = remember(growthLogs) {
+                    growthLogs.firstOrNull { it.lengthCm != null }?.lengthCm?.let { "$it cm" } ?: "-"
+                }
+
                 ReptileHeader(
-                    r,
-                    latestWeight,
-                    latestLength,
+                    reptile = r,
+                    latestWeight = latestWeight,
+                    latestLength = latestLength,
+                    ageText = ageText,
+                    acquireDateText = acquireDateText,
                     onPhotoClick = { if (r.profilePhotoUri.isNotEmpty()) previewPhotoUri = r.profilePhotoUri },
                     onEditClick = { onNavigateToEditReptile(reptileId) }
                 )
@@ -210,11 +233,37 @@ fun ReptileDetailScreen(
                     .padding(16.dp),
                 contentAlignment = Alignment.Center
             ) {
-                AsyncImage(
-                    model = uri,
+                SubcomposeAsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(uri)
+                        .crossfade(true)
+                        .memoryCachePolicy(CachePolicy.ENABLED)
+                        .diskCachePolicy(CachePolicy.ENABLED)
+                        .build(),
                     contentDescription = null,
                     modifier = Modifier.fillMaxWidth(),
-                    contentScale = ContentScale.Fit
+                    contentScale = ContentScale.Fit,
+                    loading = {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .aspectRatio(1f)
+                                .background(MaterialTheme.colorScheme.surfaceVariant)
+                        )
+                    },
+                    error = {
+                        Box(
+                            modifier = Modifier.fillMaxWidth(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                Icons.Default.BrokenImage,
+                                contentDescription = null,
+                                modifier = Modifier.size(48.dp),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
                 )
             }
         }
@@ -224,8 +273,10 @@ fun ReptileDetailScreen(
 @Composable
 fun ReptileHeader(
     reptile: ReptileEntity,
-    latestWeight: Float?,
-    latestLength: Float?,
+    latestWeight: String,
+    latestLength: String,
+    ageText: String,
+    acquireDateText: String?,
     onPhotoClick: () -> Unit,
     onEditClick: () -> Unit
 ) {
@@ -254,15 +305,41 @@ fun ReptileHeader(
                         modifier = Modifier
                             .size(80.dp)
                             .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.primary)
+                            .background(MaterialTheme.colorScheme.surfaceVariant)
                             .clickable { onPhotoClick() },
                         contentAlignment = Alignment.Center
                     ) {
-                        AsyncImage(
-                            model = reptile.profilePhotoUri.takeIf { it.isNotEmpty() },
+                        SubcomposeAsyncImage(
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data(reptile.profilePhotoUri.takeIf { it.isNotEmpty() })
+                                .crossfade(true)
+                                .size(128, 128)
+                                .memoryCachePolicy(CachePolicy.ENABLED)
+                                .diskCachePolicy(CachePolicy.ENABLED)
+                                .build(),
                             contentDescription = null,
                             modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.Crop
+                            contentScale = ContentScale.Crop,
+                            loading = {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                                )
+                            },
+                            error = {
+                                Box(
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        Icons.Default.BrokenImage,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(24.dp),
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
                         )
                     }
                     Spacer(modifier = Modifier.width(16.dp))
@@ -289,15 +366,14 @@ fun ReptileHeader(
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
-                            text = "Umur: ${calculateDuration(reptile.birthDate)}",
+                            text = "Umur: $ageText",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         
-                        reptile.acquireDate?.let { date ->
-                            val acquireFormatter = remember { SimpleDateFormat("dd MMM yyyy", Locale("id", "ID")) }
+                        acquireDateText?.let { text ->
                             Text(
-                                text = "Adopsi: ${acquireFormatter.format(Date(date))} (${calculateDuration(date)})",
+                                text = text,
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -311,8 +387,8 @@ fun ReptileHeader(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    StatItem(label = "Berat Terkini", value = latestWeight?.let { "${it} gram" } ?: "-")
-                    StatItem(label = "Panjang Terkini", value = latestLength?.let { "${it} cm" } ?: "-")
+                    StatItem(label = "Berat Terkini", value = latestWeight)
+                    StatItem(label = "Panjang Terkini", value = latestLength)
                 }
             }
         }
@@ -331,15 +407,46 @@ fun LogPhotoRow(
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             photos.forEach { uri ->
-                AsyncImage(
-                    model = uri,
-                    contentDescription = null,
+                Box(
                     modifier = Modifier
                         .size(64.dp)
                         .clip(RoundedCornerShape(8.dp))
-                        .clickable { onPhotoClick(uri) },
-                    contentScale = ContentScale.Crop
-                )
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                        .clickable { onPhotoClick(uri) }
+                ) {
+                    SubcomposeAsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(uri)
+                            .crossfade(true)
+                            .size(256, 256)
+                            .memoryCachePolicy(CachePolicy.ENABLED)
+                            .diskCachePolicy(CachePolicy.ENABLED)
+                            .build(),
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop,
+                        loading = {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                            )
+                        },
+                        error = {
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    Icons.Default.BrokenImage,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(24.dp),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    )
+                }
             }
         }
     }
@@ -408,7 +515,7 @@ fun GrowthTab(
         }
     }
 
-    val fullDateFormatter = remember { SimpleDateFormat("dd MMM yyyy", Locale.getDefault()) }
+    remember { SimpleDateFormat("dd MMM yyyy", Locale.getDefault()) }
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
@@ -475,39 +582,59 @@ fun GrowthTab(
             }
         }
 
-        items(logs) { log ->
-            Card(
+        items(
+            items = logs,
+            key = { it.id }
+        ) { log ->
+            GrowthLogCard(log, viewModel, onPhotoClick, onEditLog)
+        }
+    }
+}
+
+@Composable
+fun GrowthLogCard(
+    log: GrowthLogEntity,
+    viewModel: ReptileDetailViewModel,
+    onPhotoClick: (String) -> Unit,
+    onEditLog: (Long) -> Unit
+) {
+    val fullDateFormatter = remember { SimpleDateFormat("dd MMM yyyy", Locale.getDefault()) }
+    val photos by produceState<List<GrowthPhotoEntity>>(
+        initialValue = emptyList(),
+        key1 = log.id
+    ) {
+        viewModel.getPhotosForLog(log.id).collect { value = it }
+    }
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onEditLog(log.id) },
+        shape = RoundedCornerShape(14.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
+    ) {
+        Box(modifier = Modifier.padding(16.dp)) {
+            Icon(
+                Icons.Default.Edit,
+                contentDescription = null,
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { onEditLog(log.id) },
-                shape = RoundedCornerShape(14.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
-            ) {
-                Box(modifier = Modifier.padding(16.dp)) {
-                    Icon(
-                        Icons.Default.Edit,
-                        contentDescription = null,
-                        modifier = Modifier
-                            .size(18.dp)
-                            .align(Alignment.TopEnd)
-                            .alpha(0f),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Column {
-                        Text(text = fullDateFormatter.format(Date(log.recordedAt)), style = MaterialTheme.typography.labelMedium)
-                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                            log.weightGrams?.let { Text(text = "${it}g", fontWeight = FontWeight.Bold) }
-                            log.lengthCm?.let { Text(text = "${it}cm", fontWeight = FontWeight.Bold) }
-                        }
-                        if (log.notes.isNotEmpty()) {
-                            Text(text = log.notes, style = MaterialTheme.typography.bodyMedium)
-                        }
-                        
-                        val photos by viewModel.getPhotosForLog(log.id).collectAsState(initial = emptyList())
-                        LogPhotoRow(photos = photos.map { it.photoUri }, onPhotoClick = onPhotoClick)
-                    }
+                    .size(18.dp)
+                    .align(Alignment.TopEnd)
+                    .alpha(0f),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Column {
+                Text(text = fullDateFormatter.format(Date(log.recordedAt)), style = MaterialTheme.typography.labelMedium)
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    log.weightGrams?.let { Text(text = "${it}g", fontWeight = FontWeight.Bold) }
+                    log.lengthCm?.let { Text(text = "${it}cm", fontWeight = FontWeight.Bold) }
                 }
+                if (log.notes.isNotEmpty()) {
+                    Text(text = log.notes, style = MaterialTheme.typography.bodyMedium)
+                }
+
+                LogPhotoRow(photos = photos.map { it.photoUri }, onPhotoClick = onPhotoClick)
             }
         }
     }
@@ -530,7 +657,10 @@ fun FeedingTab(logs: List<FeedingLogEntity>, onEditLog: (Long) -> Unit) {
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        items(logs) { log ->
+        items(
+            items = logs,
+            key = { it.id }
+        ) { log ->
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -582,65 +712,84 @@ fun ScuteTab(
         return
     }
 
-    val dateFormatter = remember { SimpleDateFormat("dd MMM yyyy", Locale.getDefault()) }
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        items(logs) { log ->
-            val bgColor = when (log.condition) {
-                "PIRAMIDING" -> Color(0xFFFFF9C4).copy(alpha = 0.5f) // Yellow100 tint
-                "SOFT_SHELL" -> Color(0xFFFFCDD2) // Red100
-                else -> MaterialTheme.colorScheme.surface
-            }
-            val contentColor = when (log.condition) {
-                "PIRAMIDING" -> Color(0xFFFFA726) // Orange400
-                "SOFT_SHELL" -> Color(0xFFEF5350) // Red400
-                else -> MaterialTheme.colorScheme.onSurface
-            }
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { onEditLog(log.id) },
-                shape = RoundedCornerShape(14.dp),
-                colors = CardDefaults.cardColors(containerColor = bgColor),
-                border = BorderStroke(1.dp, if (log.condition == "NORMAL") MaterialTheme.colorScheme.outline else contentColor.copy(alpha = 0.5f))
-            ) {
-                Box(modifier = Modifier.padding(16.dp)) {
-                    Icon(
-                        Icons.Default.Edit,
-                        contentDescription = null,
-                        modifier = Modifier
-                            .size(18.dp)
-                            .align(Alignment.TopEnd)
-                            .alpha(0f),
-                        tint = contentColor
-                    )
-                    Column {
-                        Text(text = dateFormatter.format(Date(log.recordedAt)), style = MaterialTheme.typography.labelMedium)
-                        val conditionIndo = when(log.condition) {
-                            "NORMAL" -> "Normal"
-                            "PIRAMIDING" -> "Piramiding"
-                            "SOFT_SHELL" -> "Shell Lunak"
-                            "RETAK" -> "Retak / Luka"
-                            "JAMUR" -> "Jamur / Bercak"
-                            else -> log.condition
-                        }
-                        Text(
-                            text = "Kondisi: $conditionIndo",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = contentColor
-                        )
-                        if (log.notes.isNotEmpty()) {
-                            Text(text = log.notes, color = contentColor)
-                        }
+        items(
+            items = logs,
+            key = { it.id }
+        ) { log ->
+            ScuteLogCard(log, viewModel, onPhotoClick, onEditLog)
+        }
+    }
+}
 
-                        val photos by viewModel.getPhotosForScuteLog(log.id).collectAsState(initial = emptyList())
-                        LogPhotoRow(photos = photos.map { it.photoUri }, onPhotoClick = onPhotoClick)
-                    }
+@Composable
+fun ScuteLogCard(
+    log: ScuteLogEntity,
+    viewModel: ReptileDetailViewModel,
+    onPhotoClick: (String) -> Unit,
+    onEditLog: (Long) -> Unit
+) {
+    val dateFormatter = remember { SimpleDateFormat("dd MMM yyyy", Locale.getDefault()) }
+    val photos by produceState<List<ScutePhotoEntity>>(
+        initialValue = emptyList(),
+        key1 = log.id
+    ) {
+        viewModel.getPhotosForScuteLog(log.id).collect { value = it }
+    }
+
+    val bgColor = when (log.condition) {
+        "PIRAMIDING" -> Color(0xFFFFF9C4).copy(alpha = 0.5f) // Yellow100 tint
+        "SOFT_SHELL" -> Color(0xFFFFCDD2) // Red100
+        else -> MaterialTheme.colorScheme.surface
+    }
+    val contentColor = when (log.condition) {
+        "PIRAMIDING" -> Color(0xFFFFA726) // Orange400
+        "SOFT_SHELL" -> Color(0xFFEF5350) // Red400
+        else -> MaterialTheme.colorScheme.onSurface
+    }
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onEditLog(log.id) },
+        shape = RoundedCornerShape(14.dp),
+        colors = CardDefaults.cardColors(containerColor = bgColor),
+        border = BorderStroke(1.dp, if (log.condition == "NORMAL") MaterialTheme.colorScheme.outline else contentColor.copy(alpha = 0.5f))
+    ) {
+        Box(modifier = Modifier.padding(16.dp)) {
+            Icon(
+                Icons.Default.Edit,
+                contentDescription = null,
+                modifier = Modifier
+                    .size(18.dp)
+                    .align(Alignment.TopEnd)
+                    .alpha(0f),
+                tint = contentColor
+            )
+            Column {
+                Text(text = dateFormatter.format(Date(log.recordedAt)), style = MaterialTheme.typography.labelMedium)
+                val conditionIndo = when(log.condition) {
+                    "NORMAL" -> "Normal"
+                    "PIRAMIDING" -> "Piramiding"
+                    "SOFT_SHELL" -> "Shell Lunak"
+                    "RETAK" -> "Retak / Luka"
+                    "JAMUR" -> "Jamur / Bercak"
+                    else -> log.condition
                 }
+                Text(
+                    text = "Kondisi: $conditionIndo",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = contentColor
+                )
+                if (log.notes.isNotEmpty()) {
+                    Text(text = log.notes, color = contentColor)
+                }
+
+                LogPhotoRow(photos = photos.map { it.photoUri }, onPhotoClick = onPhotoClick)
             }
         }
     }
@@ -764,7 +913,10 @@ fun BrumasiTab(logs: List<BrumasiLogEntity>, onEditLog: (Long) -> Unit) {
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        items(logs) { log ->
+        items(
+            items = logs,
+            key = { it.id }
+        ) { log ->
             val isActive = log.endDate == null
             val statusColor = if (isActive) Color(0xFFFFA726) else MaterialTheme.colorScheme.primary
             Card(
@@ -831,84 +983,104 @@ fun RiwayatTab(
         return
     }
 
-    val dateFormatter = remember { SimpleDateFormat("dd MMM yyyy", Locale.getDefault()) }
+    remember { SimpleDateFormat("dd MMM yyyy", Locale.getDefault()) }
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        items(logs) { riwayat ->
-            Card(
+        items(
+            items = logs,
+            key = { it.id }
+        ) { log ->
+            RiwayatCard(log, viewModel, onPhotoClick, onEditRiwayat)
+        }
+    }
+}
+
+@Composable
+fun RiwayatCard(
+    riwayat: RiwayatEntity,
+    viewModel: ReptileDetailViewModel,
+    onPhotoClick: (String) -> Unit,
+    onEditRiwayat: (Long) -> Unit
+) {
+    val dateFormatter = remember { SimpleDateFormat("dd MMM yyyy", Locale.getDefault()) }
+    val photos by produceState<List<RiwayatPhotoEntity>>(
+        initialValue = emptyList(),
+        key1 = riwayat.id
+    ) {
+        viewModel.getPhotosForRiwayat(riwayat.id).collect { value = it }
+    }
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onEditRiwayat(riwayat.id) },
+        shape = RoundedCornerShape(14.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        border = BorderStroke(1.dp, if (riwayat.isOngoing) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.outline)
+    ) {
+        Box(modifier = Modifier.padding(16.dp)) {
+            Icon(
+                Icons.Default.Edit,
+                contentDescription = null,
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { onEditRiwayat(riwayat.id) },
-                shape = RoundedCornerShape(14.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                border = BorderStroke(1.dp, if (riwayat.isOngoing) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.outline)
-            ) {
-                Box(modifier = Modifier.padding(16.dp)) {
-                    Icon(
-                        Icons.Default.Edit,
-                        contentDescription = null,
-                        modifier = Modifier
-                            .size(18.dp)
-                            .align(Alignment.TopEnd)
-                            .alpha(0f),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    .size(18.dp)
+                    .align(Alignment.TopEnd)
+                    .alpha(0f),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Column {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = riwayat.illnessName,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
                     )
-                    Column {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
+                    if (riwayat.isOngoing) {
+                        Surface(
+                            shape = RoundedCornerShape(4.dp),
+                            color = MaterialTheme.colorScheme.error
                         ) {
                             Text(
-                                text = riwayat.illnessName,
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                            if (riwayat.isOngoing) {
-                                Surface(
-                                    shape = RoundedCornerShape(4.dp),
-                                    color = MaterialTheme.colorScheme.error
-                                ) {
-                                    Text(
-                                        text = "Sedang Sakit",
-                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = Color.White
-                                    )
-                                }
-                            }
-                        }
-                        Text(
-                            text = dateFormatter.format(Date(riwayat.startDate)),
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        if (!riwayat.isOngoing && riwayat.endDate != null) {
-                            Text(
-                                text = "Sembuh: ${dateFormatter.format(Date(riwayat.endDate))}",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                                text = "Sedang Sakit",
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = Color.White
                             )
                         }
-                        if (riwayat.notes.isNotEmpty()) {
-                            Spacer(Modifier.height(4.dp))
-                            Text(
-                                text = riwayat.notes,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurface,
-                                maxLines = 2,
-                                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
-                            )
-                        }
-                        
-                        val photos by viewModel.getPhotosForRiwayat(riwayat.id).collectAsState(initial = emptyList())
-                        LogPhotoRow(photos = photos.map { it.photoUri }, onPhotoClick = onPhotoClick)
                     }
                 }
+                Text(
+                    text = dateFormatter.format(Date(riwayat.startDate)),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                if (!riwayat.isOngoing && riwayat.endDate != null) {
+                    Text(
+                        text = "Sembuh: ${dateFormatter.format(Date(riwayat.endDate))}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                    )
+                }
+                if (riwayat.notes.isNotEmpty()) {
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        text = riwayat.notes,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 2,
+                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                    )
+                }
+
+                LogPhotoRow(photos = photos.map { it.photoUri }, onPhotoClick = onPhotoClick)
             }
         }
     }

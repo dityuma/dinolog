@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -17,10 +18,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.BrokenImage
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.PhotoLibrary
@@ -28,14 +31,19 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import coil.compose.SubcomposeAsyncImage
+import coil.request.CachePolicy
+import coil.request.ImageRequest
 import com.dites.dinolog.data.local.entity.GrowthLogEntity
 import com.dites.dinolog.data.local.entity.GrowthPhotoEntity
 import com.dites.dinolog.data.repository.DinoLogRepository
@@ -58,9 +66,9 @@ fun EditGrowthLogScreen(
     )
 ) {
     val context = LocalContext.current
-    val logs by viewModel.growthLogs.collectAsState()
+    val logs by viewModel.growthLogs.collectAsStateWithLifecycle()
     val log = logs.find { it.id == logId }
-    val existingPhotos by viewModel.getPhotosForLog(logId).collectAsState(initial = emptyList())
+    val existingPhotos by viewModel.getPhotosForLog(logId).collectAsStateWithLifecycle(initialValue = emptyList())
 
     var recordedAt by remember { mutableStateOf(System.currentTimeMillis()) }
     var weightGrams by remember { mutableStateOf("") }
@@ -186,12 +194,43 @@ fun EditGrowthLogScreen(
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     existingPhotos.forEach { photo ->
-                        Box {
-                            AsyncImage(
-                                model = photo.photoUri,
+                        Box(
+                            modifier = Modifier
+                                .size(80.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(MaterialTheme.colorScheme.surfaceVariant)
+                        ) {
+                            SubcomposeAsyncImage(
+                                model = ImageRequest.Builder(LocalContext.current)
+                                    .data(photo.photoUri)
+                                    .crossfade(true)
+                                    .size(256, 256)
+                                    .memoryCachePolicy(CachePolicy.ENABLED)
+                                    .diskCachePolicy(CachePolicy.ENABLED)
+                                    .build(),
                                 contentDescription = null,
-                                modifier = Modifier.size(80.dp),
-                                contentScale = ContentScale.Crop
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Crop,
+                                loading = {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .background(MaterialTheme.colorScheme.surfaceVariant)
+                                    )
+                                },
+                                error = {
+                                    Box(
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            Icons.Default.BrokenImage,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(24.dp),
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                }
                             )
                             IconButton(
                                 onClick = { viewModel.deletePhoto(photo) },
@@ -204,12 +243,43 @@ fun EditGrowthLogScreen(
                         }
                     }
                     newPhotos.forEach { uri ->
-                        Box {
-                            AsyncImage(
-                                model = uri,
+                        Box(
+                            modifier = Modifier
+                                .size(80.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(MaterialTheme.colorScheme.surfaceVariant)
+                        ) {
+                            SubcomposeAsyncImage(
+                                model = ImageRequest.Builder(LocalContext.current)
+                                    .data(uri)
+                                    .crossfade(true)
+                                    .size(256, 256)
+                                    .memoryCachePolicy(CachePolicy.ENABLED)
+                                    .diskCachePolicy(CachePolicy.ENABLED)
+                                    .build(),
                                 contentDescription = null,
-                                modifier = Modifier.size(80.dp),
-                                contentScale = ContentScale.Crop
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Crop,
+                                loading = {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .background(MaterialTheme.colorScheme.surfaceVariant)
+                                    )
+                                },
+                                error = {
+                                    Box(
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            Icons.Default.BrokenImage,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(24.dp),
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                }
                             )
                             IconButton(
                                 onClick = { newPhotos = newPhotos - uri },

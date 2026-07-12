@@ -5,6 +5,7 @@ import android.content.Context
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
@@ -15,6 +16,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.BrokenImage
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.PhotoLibrary
@@ -32,6 +34,9 @@ import androidx.core.content.FileProvider
 import androidx.core.net.toUri
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import coil.compose.SubcomposeAsyncImage
+import coil.request.CachePolicy
+import coil.request.ImageRequest
 import com.dites.dinolog.data.local.entity.ScuteLogEntity
 import com.dites.dinolog.data.repository.DinoLogRepository
 import com.dites.dinolog.ui.viewmodel.ReptileDetailViewModel
@@ -220,14 +225,43 @@ fun AddScuteLogScreen(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     items(photoUris) { uri ->
-                        Box(modifier = Modifier.size(64.dp)) {
-                            AsyncImage(
-                                model = uri,
+                        Box(
+                            modifier = Modifier
+                                .size(64.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(MaterialTheme.colorScheme.surfaceVariant)
+                        ) {
+                            SubcomposeAsyncImage(
+                                model = ImageRequest.Builder(LocalContext.current)
+                                    .data(uri)
+                                    .crossfade(true)
+                                    .size(256, 256)
+                                    .memoryCachePolicy(CachePolicy.ENABLED)
+                                    .diskCachePolicy(CachePolicy.ENABLED)
+                                    .build(),
                                 contentDescription = null,
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .clip(RoundedCornerShape(8.dp)),
-                                contentScale = ContentScale.Crop
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Crop,
+                                loading = {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .background(MaterialTheme.colorScheme.surfaceVariant)
+                                    )
+                                },
+                                error = {
+                                    Box(
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            Icons.Default.BrokenImage,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(24.dp),
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                }
                             )
                             IconButton(
                                 onClick = { photoUris.remove(uri) },

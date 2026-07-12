@@ -22,6 +22,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.dites.dinolog.BuildConfig
@@ -46,8 +47,8 @@ fun SettingsScreen(
     )
 ) {
     val context = LocalContext.current
-    val isLoading by viewModel.isLoading.collectAsState()
-    val selectedTheme by viewModel.selectedTheme.collectAsState(initial = ThemePreference.DEFAULT_THEME)
+    val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
+    val selectedTheme by viewModel.selectedTheme.collectAsStateWithLifecycle(initialValue = ThemePreference.DEFAULT_THEME)
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 

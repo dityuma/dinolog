@@ -10,6 +10,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.BrokenImage
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -18,12 +19,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import coil.compose.SubcomposeAsyncImage
+import coil.request.CachePolicy
+import coil.request.ImageRequest
 import com.dites.dinolog.data.local.entity.ReptileEntity
 import com.dites.dinolog.data.repository.DinoLogRepository
 import com.dites.dinolog.ui.viewmodel.ReptileListViewModel
@@ -40,7 +46,7 @@ fun ReptileListScreen(
         factory = ReptileListViewModelFactory(repository)
     )
 ) {
-    val reptiles by viewModel.reptiles.collectAsState()
+    val reptiles by viewModel.reptiles.collectAsStateWithLifecycle()
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -110,7 +116,10 @@ fun ReptileListScreen(
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                items(reptiles) { reptile ->
+                items(
+                    items = reptiles,
+                    key = { reptile -> reptile.id }
+                ) { reptile ->
                     ReptileCard(
                         reptile = reptile,
                         onClick = { onNavigateToDetail(reptile.id) }
@@ -145,16 +154,42 @@ fun ReptileCard(
         ) {
             Box(
                 modifier = Modifier
-                    .size(64.dp)
+                    .size(52.dp)
                     .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primary),
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
                 contentAlignment = Alignment.Center
             ) {
-                AsyncImage(
-                    model = if (reptile.profilePhotoUri.isNotEmpty()) reptile.profilePhotoUri else null,
+                SubcomposeAsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(reptile.profilePhotoUri.takeIf { it.isNotEmpty() })
+                        .crossfade(true)
+                        .size(128, 128)
+                        .memoryCachePolicy(CachePolicy.ENABLED)
+                        .diskCachePolicy(CachePolicy.ENABLED)
+                        .build(),
                     contentDescription = null,
                     modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
+                    contentScale = ContentScale.Crop,
+                    loading = {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(MaterialTheme.colorScheme.surfaceVariant)
+                        )
+                    },
+                    error = {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                Icons.Default.BrokenImage,
+                                contentDescription = null,
+                                modifier = Modifier.size(24.dp),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
                 )
             }
             Spacer(modifier = Modifier.width(16.dp))
