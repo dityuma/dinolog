@@ -65,7 +65,6 @@ fun EditGrowthLogScreen(
     var recordedAt by remember { mutableStateOf(System.currentTimeMillis()) }
     var weightGrams by remember { mutableStateOf("") }
     var lengthCm by remember { mutableStateOf("") }
-    var bodyCondition by remember { mutableStateOf("IDEAL") }
     var notes by remember { mutableStateOf("") }
 
     // Use a local list for newly added photos before saving
@@ -76,7 +75,6 @@ fun EditGrowthLogScreen(
             recordedAt = it.recordedAt
             weightGrams = it.weightGrams?.toString() ?: ""
             lengthCm = it.lengthCm?.toString() ?: ""
-            bodyCondition = it.bodyCondition
             notes = it.notes
         }
     }
@@ -163,43 +161,6 @@ fun EditGrowthLogScreen(
                 singleLine = true
             )
 
-            // Body Condition Dropdown
-            var expanded by remember { mutableStateOf(false) }
-            val conditionOptions = listOf(
-                "UNDERWEIGHT" to "Kurus Sekali",
-                "SLIM" to "Kurus",
-                "IDEAL" to "Ideal",
-                "HEAVY" to "Gemuk",
-                "OBESE" to "Obesitas"
-            )
-            ExposedDropdownMenuBox(
-                expanded = expanded,
-                onExpandedChange = { expanded = !expanded }
-            ) {
-                OutlinedTextField(
-                    value = conditionOptions.find { it.first == bodyCondition }?.second ?: "Ideal",
-                    onValueChange = {},
-                    readOnly = true,
-                    label = { Text("Kondisi Tubuh") },
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                    modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryEditable, true).fillMaxWidth()
-                )
-                ExposedDropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false }
-                ) {
-                    conditionOptions.forEach { selection ->
-                        DropdownMenuItem(
-                            text = { Text(selection.second) },
-                            onClick = {
-                                bodyCondition = selection.first
-                                expanded = false
-                            }
-                        )
-                    }
-                }
-            }
-
             OutlinedTextField(
                 value = notes,
                 onValueChange = { notes = it },
@@ -271,7 +232,6 @@ fun EditGrowthLogScreen(
                                 recordedAt = recordedAt,
                                 weightGrams = weightGrams.toFloatOrNull(),
                                 lengthCm = lengthCm.toFloatOrNull(),
-                                bodyCondition = bodyCondition,
                                 notes = notes
                             )
                         )

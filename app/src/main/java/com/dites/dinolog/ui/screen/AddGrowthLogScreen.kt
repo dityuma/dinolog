@@ -54,7 +54,6 @@ fun AddGrowthLogScreen(
     var recordedAt by remember { mutableStateOf(System.currentTimeMillis()) }
     var weightGrams by remember { mutableStateOf("") }
     var lengthCm by remember { mutableStateOf("") }
-    var bodyCondition by remember { mutableStateOf("IDEAL") }
     var notes by remember { mutableStateOf("") }
     var photoUris by rememberSaveable { mutableStateOf<List<String>>(emptyList()) }
 
@@ -185,52 +184,6 @@ fun AddGrowthLogScreen(
                 )
             )
 
-            // Body Condition Dropdown
-            var expanded by remember { mutableStateOf(false) }
-            val conditionOptions = listOf(
-                "UNDERWEIGHT" to "Kurus Sekali",
-                "SLIM" to "Kurus",
-                "IDEAL" to "Ideal",
-                "HEAVY" to "Gemuk",
-                "OBESE" to "Obesitas"
-            )
-            ExposedDropdownMenuBox(
-                expanded = expanded,
-                onExpandedChange = { expanded = !expanded }
-            ) {
-                OutlinedTextField(
-                    value = conditionOptions.find { it.first == bodyCondition }?.second ?: "Ideal",
-                    onValueChange = {},
-                    readOnly = true,
-                    label = { Text("Kondisi Tubuh") },
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                    modifier = Modifier.menuAnchor().fillMaxWidth(),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = MaterialTheme.colorScheme.primary,
-                        unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-                        focusedLabelColor = MaterialTheme.colorScheme.primary,
-                        unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                        cursorColor = MaterialTheme.colorScheme.primary,
-                        focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                        unfocusedTextColor = MaterialTheme.colorScheme.onSurface
-                    )
-                )
-                ExposedDropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false }
-                ) {
-                    conditionOptions.forEach { selection ->
-                        DropdownMenuItem(
-                            text = { Text(selection.second) },
-                            onClick = {
-                                bodyCondition = selection.first
-                                expanded = false
-                            }
-                        )
-                    }
-                }
-            }
-
             OutlinedTextField(
                 value = notes,
                 onValueChange = { notes = it },
@@ -296,7 +249,7 @@ fun AddGrowthLogScreen(
                             recordedAt = recordedAt,
                             weightGrams = weightGrams.toFloatOrNull(),
                             lengthCm = lengthCm.toFloatOrNull(),
-                            bodyCondition = bodyCondition,
+                            bodyCondition = "IDEAL",
                             notes = notes
                         ),
                         photoUris
