@@ -8,6 +8,8 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.dites.dinolog.data.local.entity.*
 import com.dites.dinolog.data.repository.DinoLogRepository
+import com.dites.dinolog.ui.theme.AppTheme
+import com.dites.dinolog.ui.theme.ThemePreference
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import kotlinx.coroutines.Dispatchers
@@ -278,11 +280,18 @@ class TortoiseCareViewModelFactory(
 // ─────────────────────────────────────────────
 class SettingsViewModel(
     private val repository: DinoLogRepository,
-    private val context: Context
+    private val context: Context,
+    private val themePreference: ThemePreference
 ) : ViewModel() {
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+
+    val selectedTheme: Flow<String> = themePreference.selectedTheme
+
+    fun setTheme(theme: AppTheme) = viewModelScope.launch {
+        themePreference.setTheme(theme.name)
+    }
 
     private val gson = GsonBuilder().setPrettyPrinting().create()
 
@@ -378,12 +387,13 @@ class SettingsViewModel(
 
 class SettingsViewModelFactory(
     private val repository: DinoLogRepository,
-    private val context: Context
+    private val context: Context,
+    private val themePreference: ThemePreference
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(SettingsViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return SettingsViewModel(repository, context) as T
+            return SettingsViewModel(repository, context, themePreference) as T
         }
         throw IllegalArgumentException("Unknown ViewModel: ${modelClass.name}")
     }

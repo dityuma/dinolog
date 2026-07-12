@@ -26,6 +26,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.dites.dinolog.BuildConfig
 import com.dites.dinolog.data.repository.DinoLogRepository
+import com.dites.dinolog.ui.theme.AppTheme
+import com.dites.dinolog.ui.theme.ThemePreference
 import com.dites.dinolog.ui.viewmodel.SettingsViewModel
 import com.dites.dinolog.ui.viewmodel.SettingsViewModelFactory
 import kotlinx.coroutines.launch
@@ -36,11 +38,16 @@ fun SettingsScreen(
     navController: NavHostController,
     repository: DinoLogRepository,
     viewModel: SettingsViewModel = viewModel(
-        factory = SettingsViewModelFactory(repository, LocalContext.current.applicationContext)
+        factory = SettingsViewModelFactory(
+            repository,
+            LocalContext.current.applicationContext,
+            ThemePreference(LocalContext.current.applicationContext)
+        )
     )
 ) {
     val context = LocalContext.current
     val isLoading by viewModel.isLoading.collectAsState()
+    val selectedTheme by viewModel.selectedTheme.collectAsState(initial = ThemePreference.DEFAULT_THEME)
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
@@ -114,7 +121,25 @@ fun SettingsScreen(
                 )
             }
 
-            // SECTION 2: TENTANG APLIKASI
+            // SECTION 2: DUKUNG DEVELOPER
+            SettingsSection(title = "DUKUNG DEVELOPER") {
+                SupportCard(
+                    onClick = {
+                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://saweria.co/ditesodin"))
+                        context.startActivity(intent)
+                    }
+                )
+            }
+
+            // SECTION 3: TEMA APLIKASI
+            SettingsSection(title = "TEMA APLIKASI") {
+                ThemeSwitcher(
+                    selectedTheme = selectedTheme,
+                    onThemeSelected = { viewModel.setTheme(it) }
+                )
+            }
+
+            // SECTION 4: TENTANG APLIKASI
             SettingsSection(title = "TENTANG APLIKASI") {
                 SettingsItem(
                     icon = Icons.Default.Info,
@@ -140,16 +165,6 @@ fun SettingsScreen(
                     subtitle = "Lihat kode sumber di GitHub",
                     onClick = {
                         val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/dityuma/dinolog"))
-                        context.startActivity(intent)
-                    }
-                )
-            }
-
-            // SECTION 3: DUKUNG DEVELOPER
-            SettingsSection(title = "DUKUNG DEVELOPER") {
-                SupportCard(
-                    onClick = {
-                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://saweria.co/ditesodin"))
                         context.startActivity(intent)
                     }
                 )
@@ -279,5 +294,104 @@ fun SupportCard(onClick: () -> Unit) {
                 Text("☕ Donasi via Saweria")
             }
         }
+    }
+}
+
+@Composable
+fun ThemeSwitcher(
+    selectedTheme: String,
+    onThemeSelected: (AppTheme) -> Unit
+) {
+    val themes = listOf(
+        ThemeOption(AppTheme.ALDABRA_GIANT, "Aldabra Giant", Color(0xFF2A2A2A), Color(0xFF9E9E9E), Color(0xFFE8E8E0), isDefault = true),
+        ThemeOption(AppTheme.SULCATA_DESERT, "Sulcata Desert", Color(0xFFF5EDD6), Color(0xFFC8923A), Color(0xFF5C3D0E)),
+        ThemeOption(AppTheme.RADIATA_STARBURST, "Radiata Starburst", Color(0xFF1A1A0F), Color(0xFFF5C842), Color(0xFFF5C842)),
+        ThemeOption(AppTheme.CHERRY_HEAD, "Cherry Head", Color(0xFFF9F0EE), Color(0xFFC41E3A), Color(0xFF2C1810)),
+        ThemeOption(AppTheme.PARDALIS_SAVANNA, "Pardalis Savanna", Color(0xFFF7F0D8), Color(0xFF2C2C00), Color(0xFF1A1A00)),
+        ThemeOption(AppTheme.CITRUS_SPARK, "Citrus Spark", Color(0xFFFFF176), Color(0xFFF06292), Color(0xFF0D47A1)),
+        ThemeOption(AppTheme.TEAL_BLOSSOM, "Teal Blossom", Color(0xFF00897B), Color(0xFFF8F0F0), Color(0xFFFCE4EC)),
+        ThemeOption(AppTheme.SAGE_GARDEN, "Sage Garden", Color(0xFFFAF7F0), Color(0xFFC4A882), Color(0xFF4A7C59))
+    )
+
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        themes.forEach { theme ->
+            ThemeCard(
+                theme = theme,
+                isSelected = selectedTheme == theme.type.name,
+                onClick = { onThemeSelected(theme.type) }
+            )
+        }
+    }
+}
+
+data class ThemeOption(
+    val type: AppTheme,
+    val name: String,
+    val bgColor: Color,
+    val primaryColor: Color,
+    val textColor: Color,
+    val isDefault: Boolean = false
+)
+
+@Composable
+fun ThemeCard(
+    theme: ThemeOption,
+    isSelected: Boolean,
+    onClick: () -> Unit
+) {
+    val borderColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+    val borderWidth = if (isSelected) 2.dp else 0.5.dp
+
+    Surface(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        color = MaterialTheme.colorScheme.surface,
+        border = androidx.compose.foundation.BorderStroke(borderWidth, borderColor)
+    ) {
+        Row(
+            modifier = Modifier
+                .padding(12.dp)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                ColorCircle(theme.bgColor)
+                ColorCircle(theme.primaryColor)
+                ColorCircle(theme.textColor)
+            }
+            Spacer(modifier = Modifier.width(16.dp))
+            Text(
+                text = theme.name,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.weight(1f)
+            )
+            if (theme.isDefault) {
+                Surface(
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    shape = RoundedCornerShape(4.dp),
+                    modifier = Modifier.padding(end = 8.dp)
+                ) {
+                    Text(
+                        text = "Default",
+                        style = MaterialTheme.typography.labelSmall,
+                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                }
+            }
+            RadioButton(
+                selected = isSelected,
+                onClick = onClick
+            )
+        }
+    }
+}
+
+@Composable
+fun ColorCircle(color: Color) {
+    androidx.compose.foundation.Canvas(modifier = Modifier.size(24.dp)) {
+        drawCircle(color = color)
     }
 }

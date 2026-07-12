@@ -61,6 +61,9 @@ dependencies {
     // Gson — export/import JSON
     implementation(libs.gson)
 
+    // DataStore Preferences — theme storage
+    implementation(libs.androidx.datastore.preferences)
+
     // Unit tests
     testImplementation(libs.junit)
 
