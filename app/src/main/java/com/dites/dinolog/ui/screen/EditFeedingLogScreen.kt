@@ -15,6 +15,7 @@ import com.dites.dinolog.data.local.entity.FeedingLogEntity
 import com.dites.dinolog.data.repository.DinoLogRepository
 import com.dites.dinolog.ui.viewmodel.ReptileDetailViewModel
 import com.dites.dinolog.ui.viewmodel.ReptileDetailViewModelFactory
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -29,6 +30,9 @@ fun EditFeedingLogScreen(
         factory = ReptileDetailViewModelFactory(repository, reptileId)
     )
 ) {
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+
     val feedingLogs by viewModel.feedingLogs.collectAsState()
     val log = feedingLogs.find { it.id == logId }
 
@@ -54,6 +58,7 @@ fun EditFeedingLogScreen(
     )
 
     Scaffold(
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text("Edit Catatan Makan") },
@@ -138,16 +143,19 @@ fun EditFeedingLogScreen(
             Button(
                 onClick = {
                     log?.let { current ->
-                        viewModel.updateFeedingLog(
-                            current.copy(
-                                feedingDate = feedingDate,
-                                foodType = foodType,
-                                foodAmount = foodAmount,
-                                notes = notes,
-                                accepted = true
+                        scope.launch {
+                            viewModel.updateFeedingLog(
+                                current.copy(
+                                    feedingDate = feedingDate,
+                                    foodType = foodType,
+                                    foodAmount = foodAmount,
+                                    notes = notes,
+                                    accepted = true
+                                )
                             )
-                        )
-                        onNavigateBack()
+                            snackbarHostState.showSnackbar("Catatan makan berhasil diperbarui")
+                            onNavigateBack()
+                        }
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),

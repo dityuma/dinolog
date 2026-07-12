@@ -41,6 +41,7 @@ import com.dites.dinolog.data.local.entity.GrowthLogEntity
 import com.dites.dinolog.data.repository.DinoLogRepository
 import com.dites.dinolog.ui.viewmodel.ReptileDetailViewModel
 import com.dites.dinolog.ui.viewmodel.ReptileDetailViewModelFactory
+import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat
@@ -57,6 +58,9 @@ fun AddGrowthLogScreen(
     )
 ) {
     val context = LocalContext.current
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+
     var recordedAt by remember { mutableStateOf(System.currentTimeMillis()) }
     var weightGrams by remember { mutableStateOf("") }
     var lengthCm by remember { mutableStateOf("") }
@@ -104,6 +108,7 @@ fun AddGrowthLogScreen(
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text("Tambah Catatan Pertumbuhan") },
@@ -280,18 +285,21 @@ fun AddGrowthLogScreen(
 
             Button(
                 onClick = {
-                    viewModel.addGrowthLog(
-                        GrowthLogEntity(
-                            reptileId = reptileId,
-                            recordedAt = recordedAt,
-                            weightGrams = weightGrams.toFloatOrNull(),
-                            lengthCm = lengthCm.toFloatOrNull(),
-                            bodyCondition = "IDEAL",
-                            notes = notes
-                        ),
-                        photoUris
-                    )
-                    onNavigateBack()
+                    scope.launch {
+                        viewModel.addGrowthLog(
+                            GrowthLogEntity(
+                                reptileId = reptileId,
+                                recordedAt = recordedAt,
+                                weightGrams = weightGrams.toFloatOrNull(),
+                                lengthCm = lengthCm.toFloatOrNull(),
+                                bodyCondition = "IDEAL",
+                                notes = notes
+                            ),
+                            photoUris
+                        )
+                        snackbarHostState.showSnackbar("Catatan pertumbuhan berhasil disimpan")
+                        onNavigateBack()
+                    }
                 },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(10.dp),

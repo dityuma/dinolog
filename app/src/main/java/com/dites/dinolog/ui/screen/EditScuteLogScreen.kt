@@ -42,6 +42,7 @@ import com.dites.dinolog.data.local.entity.ScutePhotoEntity
 import com.dites.dinolog.data.repository.DinoLogRepository
 import com.dites.dinolog.ui.viewmodel.ReptileDetailViewModel
 import com.dites.dinolog.ui.viewmodel.ReptileDetailViewModelFactory
+import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat
@@ -59,6 +60,8 @@ fun EditScuteLogScreen(
     )
 ) {
     val context = LocalContext.current
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
     val scuteLogs by viewModel.scuteLogs.collectAsStateWithLifecycle()
     val log = scuteLogs.find { it.id == logId }
     val existingPhotos by viewModel.getPhotosForScuteLog(logId).collectAsStateWithLifecycle(initialValue = emptyList())
@@ -126,6 +129,7 @@ fun EditScuteLogScreen(
     )
 
     Scaffold(
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text("Edit Kondisi Karapas") },
@@ -367,20 +371,23 @@ fun EditScuteLogScreen(
             Button(
                 onClick = {
                     log?.let { current ->
-                        viewModel.updateScuteLog(
-                            current.copy(
-                                recordedAt = recordedAt,
-                                condition = condition,
-                                notes = notes
+                        scope.launch {
+                            viewModel.updateScuteLog(
+                                current.copy(
+                                    recordedAt = recordedAt,
+                                    condition = condition,
+                                    notes = notes
+                                )
                             )
-                        )
-                        // Handle photo changes
-                        photosToDelete.forEach { viewModel.deleteScutePhoto(it) }
-                        if (newPhotoUris.isNotEmpty()) {
-                            val newPhotos = newPhotoUris.map { ScutePhotoEntity(scuteLogId = logId, photoUri = it) }
-                            viewModel.addScutePhotos(newPhotos)
+                            // Handle photo changes
+                            photosToDelete.forEach { viewModel.deleteScutePhoto(it) }
+                            if (newPhotoUris.isNotEmpty()) {
+                                val newPhotos = newPhotoUris.map { ScutePhotoEntity(scuteLogId = logId, photoUri = it) }
+                                viewModel.addScutePhotos(newPhotos)
+                            }
+                            snackbarHostState.showSnackbar("Catatan karapas berhasil diperbarui")
+                            onNavigateBack()
                         }
-                        onNavigateBack()
                     }
                 },
                 modifier = Modifier.fillMaxWidth()

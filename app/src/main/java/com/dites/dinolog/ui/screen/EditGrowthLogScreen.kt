@@ -49,6 +49,7 @@ import com.dites.dinolog.data.local.entity.GrowthPhotoEntity
 import com.dites.dinolog.data.repository.DinoLogRepository
 import com.dites.dinolog.ui.viewmodel.ReptileDetailViewModel
 import com.dites.dinolog.ui.viewmodel.ReptileDetailViewModelFactory
+import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat
@@ -66,6 +67,8 @@ fun EditGrowthLogScreen(
     )
 ) {
     val context = LocalContext.current
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
     val logs by viewModel.growthLogs.collectAsStateWithLifecycle()
     val log = logs.find { it.id == logId }
     val existingPhotos by viewModel.getPhotosForLog(logId).collectAsStateWithLifecycle(initialValue = emptyList())
@@ -115,6 +118,7 @@ fun EditGrowthLogScreen(
     }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text("Edit Catatan Pertumbuhan") },
@@ -297,19 +301,22 @@ fun EditGrowthLogScreen(
             Button(
                 onClick = {
                     log?.let { current ->
-                        viewModel.updateGrowthLog(
-                            current.copy(
-                                recordedAt = recordedAt,
-                                weightGrams = weightGrams.toFloatOrNull(),
-                                lengthCm = lengthCm.toFloatOrNull(),
-                                notes = notes
+                        scope.launch {
+                            viewModel.updateGrowthLog(
+                                current.copy(
+                                    recordedAt = recordedAt,
+                                    weightGrams = weightGrams.toFloatOrNull(),
+                                    lengthCm = lengthCm.toFloatOrNull(),
+                                    notes = notes
+                                )
                             )
-                        )
-                        // Save new photos
-                        newPhotos.forEach { uri ->
-                            viewModel.addPhotoToLog(logId, uri)
+                            // Save new photos
+                            newPhotos.forEach { uri ->
+                                viewModel.addPhotoToLog(logId, uri)
+                            }
+                            snackbarHostState.showSnackbar("Catatan pertumbuhan berhasil diperbarui")
+                            onNavigateBack()
                         }
-                        onNavigateBack()
                     }
                 },
                 modifier = Modifier.fillMaxWidth()

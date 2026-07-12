@@ -42,6 +42,7 @@ import com.dites.dinolog.data.local.entity.RiwayatPhotoEntity
 import com.dites.dinolog.data.repository.DinoLogRepository
 import com.dites.dinolog.ui.viewmodel.ReptileDetailViewModel
 import com.dites.dinolog.ui.viewmodel.ReptileDetailViewModelFactory
+import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat
@@ -59,6 +60,8 @@ fun EditRiwayatScreen(
     )
 ) {
     val context = LocalContext.current
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
     val riwayatLogs by viewModel.riwayatLogs.collectAsStateWithLifecycle()
     val riwayat = riwayatLogs.find { it.id == riwayatId }
     val existingPhotos by viewModel.getPhotosForRiwayat(riwayatId).collectAsStateWithLifecycle(initialValue = emptyList())
@@ -128,6 +131,7 @@ fun EditRiwayatScreen(
     val dateFormatter = remember { SimpleDateFormat("dd MMM yyyy", Locale.getDefault()) }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text("Edit Riwayat Sakit") },
@@ -346,24 +350,27 @@ fun EditRiwayatScreen(
             Button(
                 onClick = {
                     riwayat?.let { current ->
-                        viewModel.updateRiwayat(
-                            current.copy(
-                                illnessName = illnessName,
-                                notes = notes,
-                                startDate = startDate,
-                                isOngoing = isOngoing,
-                                endDate = if (isOngoing) null else endDate
+                        scope.launch {
+                            viewModel.updateRiwayat(
+                                current.copy(
+                                    illnessName = illnessName,
+                                    notes = notes,
+                                    startDate = startDate,
+                                    isOngoing = isOngoing,
+                                    endDate = if (isOngoing) null else endDate
+                                )
                             )
-                        )
-                        // Handle photo deletions
-                        photosToDelete.forEach { viewModel.deleteRiwayatPhoto(it) }
-                        // Handle new photo additions
-                        if (newPhotoUris.isNotEmpty()) {
-                            val newPhotos = newPhotoUris.map { RiwayatPhotoEntity(riwayatId = riwayatId, photoUri = it) }
-                            viewModel.addRiwayatPhotos(newPhotos)
+                            // Handle photo deletions
+                            photosToDelete.forEach { viewModel.deleteRiwayatPhoto(it) }
+                            // Handle new photo additions
+                            if (newPhotoUris.isNotEmpty()) {
+                                val newPhotos = newPhotoUris.map { RiwayatPhotoEntity(riwayatId = riwayatId, photoUri = it) }
+                                viewModel.addRiwayatPhotos(newPhotos)
+                            }
+                            snackbarHostState.showSnackbar("Riwayat sakit berhasil diperbarui")
+                            onNavigateBack()
                         }
                     }
-                    onNavigateBack()
                 },
                 modifier = Modifier.fillMaxWidth(),
                 enabled = illnessName.isNotBlank()

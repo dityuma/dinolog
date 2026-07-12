@@ -18,6 +18,7 @@ import com.dites.dinolog.data.local.entity.BrumasiLogEntity
 import com.dites.dinolog.data.repository.DinoLogRepository
 import com.dites.dinolog.ui.viewmodel.TortoiseCareViewModel
 import com.dites.dinolog.ui.viewmodel.TortoiseCareViewModelFactory
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -31,6 +32,9 @@ fun AddBrumasiLogScreen(
         factory = TortoiseCareViewModelFactory(repository, reptileId)
     )
 ) {
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+
     var startDate by remember { mutableStateOf(System.currentTimeMillis()) }
     var endDate by remember { mutableStateOf<Long?>(null) }
     var isOngoing by remember { mutableStateOf(true) }
@@ -42,6 +46,7 @@ fun AddBrumasiLogScreen(
     var showEndDatePicker by remember { mutableStateOf(false) }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text("Tambah Catatan Brumasi") },
@@ -141,17 +146,20 @@ fun AddBrumasiLogScreen(
 
             Button(
                 onClick = {
-                    viewModel.addBrumasiLog(
-                        BrumasiLogEntity(
-                            reptileId = reptileId,
-                            startDate = startDate,
-                            endDate = if (isOngoing) null else endDate,
-                            weightBeforeGrams = weightBeforeGrams.toFloatOrNull(),
-                            weightAfterGrams = weightAfterGrams.toFloatOrNull(),
-                            notes = notes
+                    scope.launch {
+                        viewModel.addBrumasiLog(
+                            BrumasiLogEntity(
+                                reptileId = reptileId,
+                                startDate = startDate,
+                                endDate = if (isOngoing) null else endDate,
+                                weightBeforeGrams = weightBeforeGrams.toFloatOrNull(),
+                                weightAfterGrams = weightAfterGrams.toFloatOrNull(),
+                                notes = notes
+                            )
                         )
-                    )
-                    onNavigateBack()
+                        snackbarHostState.showSnackbar("Catatan brumasi berhasil disimpan")
+                        onNavigateBack()
+                    }
                 },
                 modifier = Modifier.fillMaxWidth()
             ) {

@@ -36,6 +36,7 @@ import com.dites.dinolog.data.local.entity.ReptileEntity
 import com.dites.dinolog.data.repository.DinoLogRepository
 import com.dites.dinolog.ui.viewmodel.ReptileDetailViewModel
 import com.dites.dinolog.ui.viewmodel.ReptileDetailViewModelFactory
+import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat
@@ -52,6 +53,8 @@ fun EditReptileScreen(
     )
 ) {
     val context = LocalContext.current
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
     val reptile by viewModel.reptile.collectAsStateWithLifecycle()
 
     var name by remember { mutableStateOf("") }
@@ -113,6 +116,7 @@ fun EditReptileScreen(
     var showAcquireDatePicker by remember { mutableStateOf(false) }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text("Edit Kura-kura") },
@@ -279,17 +283,20 @@ fun EditReptileScreen(
                 onClick = {
                     if (name.isNotBlank() && species.isNotBlank()) {
                         reptile?.let { current ->
-                            viewModel.updateReptile(
-                                current.copy(
-                                    name = name,
-                                    species = species,
-                                    gender = gender,
-                                    birthDate = birthDate,
-                                    acquireDate = acquireDate,
-                                    profilePhotoUri = profilePhotoUri
+                            scope.launch {
+                                viewModel.updateReptile(
+                                    current.copy(
+                                        name = name,
+                                        species = species,
+                                        gender = gender,
+                                        birthDate = birthDate,
+                                        acquireDate = acquireDate,
+                                        profilePhotoUri = profilePhotoUri
+                                    )
                                 )
-                            )
-                            onNavigateBack()
+                                snackbarHostState.showSnackbar("Data kura-kura berhasil diperbarui")
+                                onNavigateBack()
+                            }
                         }
                     }
                 },

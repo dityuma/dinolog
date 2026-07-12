@@ -40,6 +40,7 @@ import com.dites.dinolog.data.local.entity.ReptileEntity
 import com.dites.dinolog.data.repository.DinoLogRepository
 import com.dites.dinolog.ui.viewmodel.ReptileListViewModel
 import com.dites.dinolog.ui.viewmodel.ReptileListViewModelFactory
+import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat
@@ -55,6 +56,9 @@ fun AddReptileScreen(
     )
 ) {
     val context = LocalContext.current
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+
     var name by remember { mutableStateOf("") }
     var species by remember { mutableStateOf("") }
     var gender by remember { mutableStateOf("TIDAK_DIKETAHUI") }
@@ -103,6 +107,7 @@ fun AddReptileScreen(
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text("Tambah Reptil") },
@@ -314,18 +319,23 @@ fun AddReptileScreen(
             Button(
                 onClick = {
                     if (name.isNotBlank() && species.isNotBlank()) {
-                        viewModel.addReptile(
-                            ReptileEntity(
-                                name = name,
-                                species = species,
-                                gender = gender,
-                                isRescue = false,
-                                birthDate = birthDate,
-                                acquireDate = acquireDate,
-                                profilePhotoUri = profilePhotoUri
-                            )
+                        val reptile = ReptileEntity(
+                            name = name,
+                            species = species,
+                            gender = gender,
+                            isRescue = false,
+                            birthDate = birthDate,
+                            acquireDate = acquireDate,
+                            profilePhotoUri = profilePhotoUri
                         )
-                        onNavigateBack()
+                        scope.launch {
+                            viewModel.addReptile(reptile)
+                            snackbarHostState.showSnackbar(
+                                message = "Kura-kura berhasil ditambahkan 🐢",
+                                duration = SnackbarDuration.Short
+                            )
+                            onNavigateBack()
+                        }
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),

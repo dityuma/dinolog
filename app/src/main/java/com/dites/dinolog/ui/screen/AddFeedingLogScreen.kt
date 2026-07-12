@@ -15,6 +15,7 @@ import com.dites.dinolog.data.local.entity.FeedingLogEntity
 import com.dites.dinolog.data.repository.DinoLogRepository
 import com.dites.dinolog.ui.viewmodel.ReptileDetailViewModel
 import com.dites.dinolog.ui.viewmodel.ReptileDetailViewModelFactory
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -28,6 +29,9 @@ fun AddFeedingLogScreen(
         factory = ReptileDetailViewModelFactory(repository, reptileId)
     )
 ) {
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+
     var feedingDate by remember { mutableStateOf(System.currentTimeMillis()) }
     var foodType by remember { mutableStateOf("") }
     var foodAmount by remember { mutableStateOf("") }
@@ -36,6 +40,7 @@ fun AddFeedingLogScreen(
     var showDatePicker by remember { mutableStateOf(false) }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text("Tambah Catatan Makan") },
@@ -97,17 +102,20 @@ fun AddFeedingLogScreen(
 
             Button(
                 onClick = {
-                    viewModel.addFeedingLog(
-                        FeedingLogEntity(
-                            reptileId = reptileId,
-                            feedingDate = feedingDate,
-                            foodType = foodType,
-                            foodAmount = foodAmount,
-                            accepted = true,
-                            notes = notes
+                    scope.launch {
+                        viewModel.addFeedingLog(
+                            FeedingLogEntity(
+                                reptileId = reptileId,
+                                feedingDate = feedingDate,
+                                foodType = foodType,
+                                foodAmount = foodAmount,
+                                accepted = true,
+                                notes = notes
+                            )
                         )
-                    )
-                    onNavigateBack()
+                        snackbarHostState.showSnackbar("Catatan makan berhasil disimpan")
+                        onNavigateBack()
+                    }
                 },
                 modifier = Modifier.fillMaxWidth(),
                 enabled = foodType.isNotBlank()

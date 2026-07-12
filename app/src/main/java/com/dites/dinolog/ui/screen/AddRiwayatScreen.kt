@@ -40,6 +40,7 @@ import com.dites.dinolog.data.local.entity.RiwayatEntity
 import com.dites.dinolog.data.repository.DinoLogRepository
 import com.dites.dinolog.ui.viewmodel.ReptileDetailViewModel
 import com.dites.dinolog.ui.viewmodel.ReptileDetailViewModelFactory
+import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat
@@ -56,6 +57,9 @@ fun AddRiwayatScreen(
     )
 ) {
     val context = LocalContext.current
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+
     var illnessName by remember { mutableStateOf("") }
     var notes by remember { mutableStateOf("") }
     var startDate by remember { mutableStateOf(System.currentTimeMillis()) }
@@ -107,6 +111,7 @@ fun AddRiwayatScreen(
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text("Tambah Riwayat Sakit") },
@@ -312,18 +317,21 @@ fun AddRiwayatScreen(
 
             Button(
                 onClick = {
-                    viewModel.addRiwayatWithPhotos(
-                        RiwayatEntity(
-                            reptileId = reptileId,
-                            illnessName = illnessName,
-                            notes = notes,
-                            startDate = startDate,
-                            isOngoing = isOngoing,
-                            endDate = if (isOngoing) null else endDate
-                        ),
-                        photoUris.toList()
-                    )
-                    onNavigateBack()
+                    scope.launch {
+                        viewModel.addRiwayatWithPhotos(
+                            RiwayatEntity(
+                                reptileId = reptileId,
+                                illnessName = illnessName,
+                                notes = notes,
+                                startDate = startDate,
+                                isOngoing = isOngoing,
+                                endDate = if (isOngoing) null else endDate
+                            ),
+                            photoUris.toList()
+                        )
+                        snackbarHostState.showSnackbar("Riwayat sakit berhasil disimpan")
+                        onNavigateBack()
+                    }
                 },
                 modifier = Modifier.fillMaxWidth(),
                 enabled = illnessName.isNotBlank(),

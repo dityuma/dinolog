@@ -41,6 +41,7 @@ import com.dites.dinolog.data.local.entity.ScuteLogEntity
 import com.dites.dinolog.data.repository.DinoLogRepository
 import com.dites.dinolog.ui.viewmodel.ReptileDetailViewModel
 import com.dites.dinolog.ui.viewmodel.ReptileDetailViewModelFactory
+import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat
@@ -57,6 +58,9 @@ fun AddScuteLogScreen(
     )
 ) {
     val context = LocalContext.current
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+
     var recordedAt by remember { mutableStateOf(System.currentTimeMillis()) }
     var condition by remember { mutableStateOf("NORMAL") }
     var notes by remember { mutableStateOf("") }
@@ -110,6 +114,7 @@ fun AddScuteLogScreen(
     )
 
     Scaffold(
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text("Tambah Kondisi Karapas") },
@@ -288,16 +293,19 @@ fun AddScuteLogScreen(
 
             Button(
                 onClick = {
-                    viewModel.addScuteLog(
-                        ScuteLogEntity(
-                            reptileId = reptileId,
-                            recordedAt = recordedAt,
-                            condition = condition,
-                            notes = notes
-                        ),
-                        photoUris.toList()
-                    )
-                    onNavigateBack()
+                    scope.launch {
+                        viewModel.addScuteLog(
+                            ScuteLogEntity(
+                                reptileId = reptileId,
+                                recordedAt = recordedAt,
+                                condition = condition,
+                                notes = notes
+                            ),
+                            photoUris.toList()
+                        )
+                        snackbarHostState.showSnackbar("Catatan karapas berhasil disimpan")
+                        onNavigateBack()
+                    }
                 },
                 modifier = Modifier.fillMaxWidth()
             ) {

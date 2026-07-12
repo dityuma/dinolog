@@ -17,6 +17,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.dites.dinolog.data.repository.DinoLogRepository
 import com.dites.dinolog.ui.viewmodel.TortoiseCareViewModel
 import com.dites.dinolog.ui.viewmodel.TortoiseCareViewModelFactory
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -31,6 +32,9 @@ fun EditBrumasiLogScreen(
         factory = TortoiseCareViewModelFactory(repository, reptileId)
     )
 ) {
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+
     val brumasiLogs by viewModel.brumasiLogs.collectAsState()
     val log = brumasiLogs.find { it.id == logId }
 
@@ -59,6 +63,7 @@ fun EditBrumasiLogScreen(
     var showEndDatePicker by remember { mutableStateOf(false) }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text("Edit Catatan Brumasi") },
@@ -149,17 +154,20 @@ fun EditBrumasiLogScreen(
             Button(
                 onClick = {
                     log?.let { current ->
-                        viewModel.updateBrumasiLog(
-                            current.copy(
-                                startDate = startDate,
-                                endDate = if (isOngoing) null else endDate,
-                                weightBeforeGrams = weightBeforeGrams.toFloatOrNull(),
-                                weightAfterGrams = weightAfterGrams.toFloatOrNull(),
-                                notes = notes
+                        scope.launch {
+                            viewModel.updateBrumasiLog(
+                                current.copy(
+                                    startDate = startDate,
+                                    endDate = if (isOngoing) null else endDate,
+                                    weightBeforeGrams = weightBeforeGrams.toFloatOrNull(),
+                                    weightAfterGrams = weightAfterGrams.toFloatOrNull(),
+                                    notes = notes
+                                )
                             )
-                        )
+                            snackbarHostState.showSnackbar("Catatan brumasi berhasil diperbarui")
+                            onNavigateBack()
+                        }
                     }
-                    onNavigateBack()
                 },
                 modifier = Modifier.fillMaxWidth()
             ) {
