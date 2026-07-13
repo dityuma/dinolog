@@ -160,15 +160,15 @@ fun SettingsScreen(
                         context.startActivity(Intent.createChooser(intent, "Kirim Email"))
                     }
                 )
-                SettingsItem(
-                    icon = Icons.Default.Code,
-                    title = "Source Code",
-                    subtitle = "Lihat kode sumber di GitHub",
-                    onClick = {
-                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/dityuma/dinolog"))
-                        context.startActivity(intent)
-                    }
-                )
+//                SettingsItem(
+//                    icon = Icons.Default.Code,
+//                    title = "Source Code",
+//                    subtitle = "Lihat kode sumber di GitHub",
+//                    onClick = {
+//                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/dityuma/dinolog"))
+//                        context.startActivity(intent)
+//                    }
+//                )
             }
         }
     }
