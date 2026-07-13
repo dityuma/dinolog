@@ -304,8 +304,8 @@ fun ThemeSwitcher(
     onThemeSelected: (AppTheme) -> Unit
 ) {
     val themes = listOf(
-        ThemeOption(AppTheme.ALDABRA_GIANT, "Aldabra Giant", Color(0xFF2A2A2A), Color(0xFF9E9E9E), Color(0xFFE8E8E0), isDefault = true),
-        ThemeOption(AppTheme.SULCATA_DESERT, "Sulcata Desert", Color(0xFFF5EDD6), Color(0xFFC8923A), Color(0xFF5C3D0E)),
+        ThemeOption(AppTheme.ALDABRA_GIANT, "Aldabra Giant", Color(0xFF2A2A2A), Color(0xFF9E9E9E), Color(0xFFE8E8E0)),
+        ThemeOption(AppTheme.SULCATA_DESERT, "Sulcata Desert", Color(0xFFF5EDD6), Color(0xFFC8923A), Color(0xFF5C3D0E), isDefault = true),
         ThemeOption(AppTheme.RADIATA_STARBURST, "Radiata Starburst", Color(0xFF1A1A0F), Color(0xFFF5C842), Color(0xFFF5C842)),
         ThemeOption(AppTheme.CHERRY_HEAD, "Cherry Head", Color(0xFFF9F0EE), Color(0xFFC41E3A), Color(0xFF2C1810)),
         ThemeOption(AppTheme.PARDALIS_SAVANNA, "Pardalis Savanna", Color(0xFFF7F0D8), Color(0xFF2C2C00), Color(0xFF1A1A00)),

@@ -15,7 +15,7 @@ class ThemePreference(private val context: Context) {
     
     companion object {
         val THEME_KEY = stringPreferencesKey("selected_theme")
-        const val DEFAULT_THEME = "ALDABRA_GIANT"
+        const val DEFAULT_THEME = "SULCATA_DESERT"
     }
     
     val selectedTheme: Flow<String> = context.dataStore.data

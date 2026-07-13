@@ -626,11 +626,34 @@ fun GrowthLogCard(
             )
             Column {
                 Text(text = fullDateFormatter.format(Date(log.recordedAt)), style = MaterialTheme.typography.labelMedium)
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    log.weightGrams?.let { Text(text = "${it}g", fontWeight = FontWeight.Bold) }
-                    log.lengthCm?.let { Text(text = "${it}cm", fontWeight = FontWeight.Bold) }
+                Spacer(modifier = Modifier.height(4.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    log.weightGrams?.let { weight ->
+                        Column {
+                            Text(
+                                text = "Berat",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(text = "$weight g", fontWeight = FontWeight.Bold)
+                        }
+                    }
+                    log.lengthCm?.let { length ->
+                        Column {
+                            Text(
+                                text = "Panjang",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(text = "$length cm", fontWeight = FontWeight.Bold)
+                        }
+                    }
                 }
                 if (log.notes.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(4.dp))
                     Text(text = log.notes, style = MaterialTheme.typography.bodyMedium)
                 }
 
