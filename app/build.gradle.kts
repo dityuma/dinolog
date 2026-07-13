@@ -65,6 +65,9 @@ dependencies {
     // DataStore Preferences — theme storage
     implementation(libs.androidx.datastore.preferences)
 
+    // SplashScreen API
+    implementation(libs.androidx.core.splashscreen)
+
     // Unit tests
     testImplementation(libs.junit)
 

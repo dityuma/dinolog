@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.DinoLog" parent="android:Theme.Material.Light.NoActionBar" />
-
     <style name="Theme.DinoLog.Splash" parent="Theme.SplashScreen">
-        <item name="windowSplashScreenBackground">#C8923A</item>
+        <item name="windowSplashScreenBackground">#2C1E08</item>
         <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash</item>
         <item name="postSplashScreenTheme">@style/Theme.DinoLog</item>
     </style>
