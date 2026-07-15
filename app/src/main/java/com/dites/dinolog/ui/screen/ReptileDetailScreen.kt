@@ -818,90 +818,90 @@ fun ScuteLogCard(
     }
 }
 
-@Composable
-fun CareTab(
-    soakingLogs: List<SoakingLogEntity>,
-    uvbLogs: List<UvbBasingLogEntity>,
-    dietLogs: List<DietLogEntity>,
-    onAddSoaking: () -> Unit,
-    onAddUvb: () -> Unit,
-    onAddDiet: () -> Unit
-) {
-    val dateFormatter = remember { SimpleDateFormat("dd MMM yyyy", Locale.getDefault()) }
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(24.dp)
-    ) {
-        // Section Soaking
-        item {
-            CareSectionHeader("Soaking (Mandi)", onAddSoaking)
-            if (soakingLogs.isEmpty()) {
-                Text("Belum ada catatan soaking", style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 8.dp))
-            }
-        }
-        items(soakingLogs.take(5)) { log ->
-            Card(
-                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-                shape = RoundedCornerShape(14.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
-            ) {
-                Column(modifier = Modifier.padding(12.dp)) {
-                    Text(dateFormatter.format(Date(log.soakingDate)), style = MaterialTheme.typography.labelSmall)
-                    Text("Durasi: ${log.durationMinutes} menit", fontWeight = FontWeight.Bold)
-                    log.waterTempCelsius?.let { Text("Suhu Air: $it°C", style = MaterialTheme.typography.bodySmall) }
-                    if (log.notes.isNotEmpty()) Text(log.notes, style = MaterialTheme.typography.bodySmall)
-                }
-            }
-        }
-
-        // Section UVB
-        item {
-            CareSectionHeader("UVB & Basking", onAddUvb)
-            if (uvbLogs.isEmpty()) {
-                Text("Belum ada catatan UVB", style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 8.dp))
-            }
-        }
-        items(uvbLogs.take(5)) { log ->
-            Card(
-                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-                shape = RoundedCornerShape(14.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
-            ) {
-                Column(modifier = Modifier.padding(12.dp)) {
-                    Text(dateFormatter.format(Date(log.sessionDate)), style = MaterialTheme.typography.labelSmall)
-                    Text("${log.uvbType} (${log.durationMinutes} menit)", fontWeight = FontWeight.Bold)
-                    log.basikingTempCelsius?.let { Text("Suhu Basking: $it°C", style = MaterialTheme.typography.bodySmall) }
-                }
-            }
-        }
-
-        // Section Diet
-        item {
-            CareSectionHeader("Diet & Sayuran", onAddDiet)
-            if (dietLogs.isEmpty()) {
-                Text("Belum ada catatan diet", style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 8.dp))
-            }
-        }
-        items(dietLogs.take(5)) { log ->
-            Card(
-                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-                shape = RoundedCornerShape(14.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
-            ) {
-                Column(modifier = Modifier.padding(12.dp)) {
-                    Text(dateFormatter.format(Date(log.recordedAt)), style = MaterialTheme.typography.labelSmall)
-                    Text("Sayur: ${log.vegetables}", fontWeight = FontWeight.Bold)
-                    if (log.fruits.isNotEmpty()) Text("Buah: ${log.fruits}", style = MaterialTheme.typography.bodySmall)
-                    if (log.supplements.isNotEmpty()) Text("Suplemen: ${log.supplements}", style = MaterialTheme.typography.bodySmall)
-                }
-            }
-        }
-    }
-}
+//@Composable
+//fun CareTab(
+//    soakingLogs: List<SoakingLogEntity>,
+//    uvbLogs: List<UvbBasingLogEntity>,
+//    dietLogs: List<DietLogEntity>,
+//    onAddSoaking: () -> Unit,
+//    onAddUvb: () -> Unit,
+//    onAddDiet: () -> Unit
+//) {
+//    val dateFormatter = remember { SimpleDateFormat("dd MMM yyyy", Locale.getDefault()) }
+//    LazyColumn(
+//        modifier = Modifier.fillMaxSize(),
+//        contentPadding = PaddingValues(16.dp),
+//        verticalArrangement = Arrangement.spacedBy(24.dp)
+//    ) {
+//        // Section Soaking
+//        item {
+//            CareSectionHeader("Soaking (Mandi)", onAddSoaking)
+//            if (soakingLogs.isEmpty()) {
+//                Text("Belum ada catatan soaking", style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 8.dp))
+//            }
+//        }
+//        items(soakingLogs.take(5)) { log ->
+//            Card(
+//                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+//                shape = RoundedCornerShape(14.dp),
+//                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+//                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
+//            ) {
+//                Column(modifier = Modifier.padding(12.dp)) {
+//                    Text(dateFormatter.format(Date(log.soakingDate)), style = MaterialTheme.typography.labelSmall)
+//                    Text("Durasi: ${log.durationMinutes} menit", fontWeight = FontWeight.Bold)
+//                    log.waterTempCelsius?.let { Text("Suhu Air: $it°C", style = MaterialTheme.typography.bodySmall) }
+//                    if (log.notes.isNotEmpty()) Text(log.notes, style = MaterialTheme.typography.bodySmall)
+//                }
+//            }
+//        }
+//
+//        // Section UVB
+//        item {
+//            CareSectionHeader("UVB & Basking", onAddUvb)
+//            if (uvbLogs.isEmpty()) {
+//                Text("Belum ada catatan UVB", style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 8.dp))
+//            }
+//        }
+//        items(uvbLogs.take(5)) { log ->
+//            Card(
+//                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+//                shape = RoundedCornerShape(14.dp),
+//                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+//                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
+//            ) {
+//                Column(modifier = Modifier.padding(12.dp)) {
+//                    Text(dateFormatter.format(Date(log.sessionDate)), style = MaterialTheme.typography.labelSmall)
+//                    Text("${log.uvbType} (${log.durationMinutes} menit)", fontWeight = FontWeight.Bold)
+//                    log.basikingTempCelsius?.let { Text("Suhu Basking: $it°C", style = MaterialTheme.typography.bodySmall) }
+//                }
+//            }
+//        }
+//
+//        // Section Diet
+//        item {
+//            CareSectionHeader("Diet & Sayuran", onAddDiet)
+//            if (dietLogs.isEmpty()) {
+//                Text("Belum ada catatan diet", style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 8.dp))
+//            }
+//        }
+//        items(dietLogs.take(5)) { log ->
+//            Card(
+//                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+//                shape = RoundedCornerShape(14.dp),
+//                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+//                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
+//            ) {
+//                Column(modifier = Modifier.padding(12.dp)) {
+//                    Text(dateFormatter.format(Date(log.recordedAt)), style = MaterialTheme.typography.labelSmall)
+//                    Text("Sayur: ${log.vegetables}", fontWeight = FontWeight.Bold)
+//                    if (log.fruits.isNotEmpty()) Text("Buah: ${log.fruits}", style = MaterialTheme.typography.bodySmall)
+//                    if (log.supplements.isNotEmpty()) Text("Suplemen: ${log.supplements}", style = MaterialTheme.typography.bodySmall)
+//                }
+//            }
+//        }
+//    }
+//}
 
 @Composable
 fun CareSectionHeader(title: String, onAdd: () -> Unit) {

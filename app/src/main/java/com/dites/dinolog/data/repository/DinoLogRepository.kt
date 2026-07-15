@@ -10,11 +10,11 @@ class DinoLogRepository(
     private val growthPhotoDao: GrowthPhotoDao,
     private val feedingLogDao: FeedingLogDao,
     private val scuteLogDao: ScuteLogDao,
-    private val soakingLogDao: SoakingLogDao,
+//    private val soakingLogDao: SoakingLogDao,
     private val brumasiLogDao: BrumasiLogDao,
-    private val uvbBasingLogDao: UvbBasingLogDao,
-    private val dietLogDao: DietLogDao,
-    private val healthRecordDao: HealthRecordDao,
+//    private val uvbBasingLogDao: UvbBasingLogDao,
+//    private val dietLogDao: DietLogDao,
+//    private val healthRecordDao: HealthRecordDao,
     private val scutePhotoDao: ScutePhotoDao,
     private val riwayatDao: RiwayatDao,
     private val riwayatPhotoDao: RiwayatPhotoDao
@@ -134,12 +134,12 @@ class DinoLogRepository(
     suspend fun insertScuteLogs(logs: List<ScuteLogEntity>) = scuteLogDao.insertScuteLogs(logs)
 
     // ── Soaking Log (PRD v3) ─────────────────
-    fun getSoakingLogs(reptileId: Long) = soakingLogDao.getSoakingLogsForReptile(reptileId)
-    suspend fun getLastSoaking(reptileId: Long) = soakingLogDao.getLastSoaking(reptileId)
-    suspend fun addSoakingLog(log: SoakingLogEntity) = soakingLogDao.insertSoakingLog(log)
-    suspend fun deleteSoakingLog(log: SoakingLogEntity) = soakingLogDao.deleteSoakingLog(log)
-    suspend fun getSoakingLogsSync(reptileId: Long) = soakingLogDao.getSoakingLogsForReptileSync(reptileId)
-    suspend fun insertSoakingLogs(logs: List<SoakingLogEntity>) = soakingLogDao.insertSoakingLogs(logs)
+//    fun getSoakingLogs(reptileId: Long) = soakingLogDao.getSoakingLogsForReptile(reptileId)
+//    suspend fun getLastSoaking(reptileId: Long) = soakingLogDao.getLastSoaking(reptileId)
+//    suspend fun addSoakingLog(log: SoakingLogEntity) = soakingLogDao.insertSoakingLog(log)
+//    suspend fun deleteSoakingLog(log: SoakingLogEntity) = soakingLogDao.deleteSoakingLog(log)
+//    suspend fun getSoakingLogsSync(reptileId: Long) = soakingLogDao.getSoakingLogsForReptileSync(reptileId)
+//    suspend fun insertSoakingLogs(logs: List<SoakingLogEntity>) = soakingLogDao.insertSoakingLogs(logs)
 
     // ── Brumasi Log (PRD v3) ─────────────────
     fun getBrumasiLogs(reptileId: Long) = brumasiLogDao.getBrumasiLogsForReptile(reptileId)
@@ -151,19 +151,19 @@ class DinoLogRepository(
     suspend fun insertBrumasiLogs(logs: List<BrumasiLogEntity>) = brumasiLogDao.insertBrumasiLogs(logs)
 
     // ── Uvb Log (PRD v3) ─────────────────────
-    fun getUvbLogs(reptileId: Long) = uvbBasingLogDao.getUvbLogsForReptile(reptileId)
-    suspend fun addUvbLog(log: UvbBasingLogEntity) = uvbBasingLogDao.insertUvbLog(log)
-    suspend fun deleteUvbLog(log: UvbBasingLogEntity) = uvbBasingLogDao.deleteUvbLog(log)
-    suspend fun getUvbLogsSync(reptileId: Long) = uvbBasingLogDao.getUvbLogsForReptileSync(reptileId)
-    suspend fun insertUvbLogs(logs: List<UvbBasingLogEntity>) = uvbBasingLogDao.insertUvbLogs(logs)
+//    fun getUvbLogs(reptileId: Long) = uvbBasingLogDao.getUvbLogsForReptile(reptileId)
+//    suspend fun addUvbLog(log: UvbBasingLogEntity) = uvbBasingLogDao.insertUvbLog(log)
+//    suspend fun deleteUvbLog(log: UvbBasingLogEntity) = uvbBasingLogDao.deleteUvbLog(log)
+//    suspend fun getUvbLogsSync(reptileId: Long) = uvbBasingLogDao.getUvbLogsForReptileSync(reptileId)
+//    suspend fun insertUvbLogs(logs: List<UvbBasingLogEntity>) = uvbBasingLogDao.insertUvbLogs(logs)
 
     // ── Diet Log (PRD v3) ────────────────────
-    fun getDietLogs(reptileId: Long) = dietLogDao.getDietLogsForReptile(reptileId)
-    suspend fun addDietLog(log: DietLogEntity) = dietLogDao.insertDietLog(log)
-    suspend fun updateDietLog(log: DietLogEntity) = dietLogDao.updateDietLog(log)
-    suspend fun deleteDietLog(log: DietLogEntity) = dietLogDao.deleteDietLog(log)
-    suspend fun getDietLogsSync(reptileId: Long) = dietLogDao.getDietLogsForReptileSync(reptileId)
-    suspend fun insertDietLogs(logs: List<DietLogEntity>) = dietLogDao.insertDietLogs(logs)
+//    fun getDietLogs(reptileId: Long) = dietLogDao.getDietLogsForReptile(reptileId)
+//    suspend fun addDietLog(log: DietLogEntity) = dietLogDao.insertDietLog(log)
+//    suspend fun updateDietLog(log: DietLogEntity) = dietLogDao.updateDietLog(log)
+//    suspend fun deleteDietLog(log: DietLogEntity) = dietLogDao.deleteDietLog(log)
+//    suspend fun getDietLogsSync(reptileId: Long) = dietLogDao.getDietLogsForReptileSync(reptileId)
+//    suspend fun insertDietLogs(logs: List<DietLogEntity>) = dietLogDao.insertDietLogs(logs)
 
     // ── Scute Photo (PRD v3) ────────────────
     fun getPhotosForScuteLog(scuteLogId: Long) = scutePhotoDao.getPhotosForScuteLog(scuteLogId)
@@ -174,26 +174,26 @@ class DinoLogRepository(
     suspend fun deleteScutePhoto(photo: ScutePhotoEntity) = scutePhotoDao.deletePhoto(photo)
 
     // ── Health Record ─────────────────────────
-    fun getHealthRecords(reptileId: Long): Flow<List<HealthRecordEntity>> =
-        healthRecordDao.getHealthRecordsForReptile(reptileId)
-
-    suspend fun getPendingReminders(): List<HealthRecordEntity> =
-        healthRecordDao.getPendingReminders()
-
-    suspend fun addHealthRecord(record: HealthRecordEntity): Long =
-        healthRecordDao.insertHealthRecord(record)
-
-    suspend fun updateHealthRecord(record: HealthRecordEntity) =
-        healthRecordDao.updateHealthRecord(record)
-
-    suspend fun deleteHealthRecord(record: HealthRecordEntity) =
-        healthRecordDao.deleteHealthRecord(record)
-
-    suspend fun getHealthRecordsSync(reptileId: Long): List<HealthRecordEntity> =
-        healthRecordDao.getHealthRecordsForReptileSync(reptileId)
-
-    suspend fun insertHealthRecords(records: List<HealthRecordEntity>) =
-        healthRecordDao.insertHealthRecords(records)
+//    fun getHealthRecords(reptileId: Long): Flow<List<HealthRecordEntity>> =
+//        healthRecordDao.getHealthRecordsForReptile(reptileId)
+//
+//    suspend fun getPendingReminders(): List<HealthRecordEntity> =
+//        healthRecordDao.getPendingReminders()
+//
+//    suspend fun addHealthRecord(record: HealthRecordEntity): Long =
+//        healthRecordDao.insertHealthRecord(record)
+//
+//    suspend fun updateHealthRecord(record: HealthRecordEntity) =
+//        healthRecordDao.updateHealthRecord(record)
+//
+//    suspend fun deleteHealthRecord(record: HealthRecordEntity) =
+//        healthRecordDao.deleteHealthRecord(record)
+//
+//    suspend fun getHealthRecordsSync(reptileId: Long): List<HealthRecordEntity> =
+//        healthRecordDao.getHealthRecordsForReptileSync(reptileId)
+//
+//    suspend fun insertHealthRecords(records: List<HealthRecordEntity>) =
+//        healthRecordDao.insertHealthRecords(records)
 
     // ── Riwayat Log ──────────────────────────
     fun getRiwayat(reptileId: Long) = riwayatDao.getRiwayatForReptile(reptileId)

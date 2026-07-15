@@ -58,8 +58,6 @@ fun AddGrowthLogScreen(
     )
 ) {
     val context = LocalContext.current
-    val snackbarHostState = remember { SnackbarHostState() }
-    val scope = rememberCoroutineScope()
 
     var recordedAt by remember { mutableStateOf(System.currentTimeMillis()) }
     var weightGrams by remember { mutableStateOf("") }
@@ -108,7 +106,6 @@ fun AddGrowthLogScreen(
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text("Tambah Catatan Pertumbuhan") },
@@ -285,21 +282,18 @@ fun AddGrowthLogScreen(
 
             Button(
                 onClick = {
-                    scope.launch {
-                        viewModel.addGrowthLog(
-                            GrowthLogEntity(
-                                reptileId = reptileId,
-                                recordedAt = recordedAt,
-                                weightGrams = weightGrams.toFloatOrNull(),
-                                lengthCm = lengthCm.toFloatOrNull(),
-                                bodyCondition = "IDEAL",
-                                notes = notes
-                            ),
-                            photoUris
-                        )
-                        snackbarHostState.showSnackbar("Catatan pertumbuhan berhasil disimpan")
-                        onNavigateBack()
-                    }
+                    viewModel.addGrowthLog(
+                        GrowthLogEntity(
+                            reptileId = reptileId,
+                            recordedAt = recordedAt,
+                            weightGrams = weightGrams.toFloatOrNull(),
+                            lengthCm = lengthCm.toFloatOrNull(),
+                            bodyCondition = "IDEAL",
+                            notes = notes
+                        ),
+                        photoUris
+                    )
+                    onNavigateBack()
                 },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(10.dp),

@@ -29,9 +29,6 @@ fun AddFeedingLogScreen(
         factory = ReptileDetailViewModelFactory(repository, reptileId)
     )
 ) {
-    val snackbarHostState = remember { SnackbarHostState() }
-    val scope = rememberCoroutineScope()
-
     var feedingDate by remember { mutableStateOf(System.currentTimeMillis()) }
     var foodType by remember { mutableStateOf("") }
     var foodAmount by remember { mutableStateOf("") }
@@ -40,7 +37,6 @@ fun AddFeedingLogScreen(
     var showDatePicker by remember { mutableStateOf(false) }
 
     Scaffold(
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text("Tambah Catatan Makan") },
@@ -102,20 +98,17 @@ fun AddFeedingLogScreen(
 
             Button(
                 onClick = {
-                    scope.launch {
-                        viewModel.addFeedingLog(
-                            FeedingLogEntity(
-                                reptileId = reptileId,
-                                feedingDate = feedingDate,
-                                foodType = foodType,
-                                foodAmount = foodAmount,
-                                accepted = true,
-                                notes = notes
-                            )
+                    viewModel.addFeedingLog(
+                        FeedingLogEntity(
+                            reptileId = reptileId,
+                            feedingDate = feedingDate,
+                            foodType = foodType,
+                            foodAmount = foodAmount,
+                            accepted = true,
+                            notes = notes
                         )
-                        snackbarHostState.showSnackbar("Catatan makan berhasil disimpan")
-                        onNavigateBack()
-                    }
+                    )
+                    onNavigateBack()
                 },
                 modifier = Modifier.fillMaxWidth(),
                 enabled = foodType.isNotBlank()

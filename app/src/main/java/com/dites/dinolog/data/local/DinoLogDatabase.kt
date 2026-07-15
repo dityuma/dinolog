@@ -16,11 +16,11 @@ import com.dites.dinolog.data.local.entity.*
         GrowthPhotoEntity::class,
         FeedingLogEntity::class,
         ScuteLogEntity::class,
-        SoakingLogEntity::class,
+//        SoakingLogEntity::class,
         BrumasiLogEntity::class,
-        UvbBasingLogEntity::class,
-        DietLogEntity::class,
-        HealthRecordEntity::class,
+//        UvbBasingLogEntity::class,
+//        DietLogEntity::class,
+//        HealthRecordEntity::class,
         ScutePhotoEntity::class,
         RiwayatEntity::class,
         RiwayatPhotoEntity::class
@@ -35,11 +35,11 @@ abstract class DinoLogDatabase : RoomDatabase() {
     abstract fun growthPhotoDao(): GrowthPhotoDao
     abstract fun feedingLogDao(): FeedingLogDao
     abstract fun scuteLogDao(): ScuteLogDao
-    abstract fun soakingLogDao(): SoakingLogDao
+//    abstract fun soakingLogDao(): SoakingLogDao
     abstract fun brumasiLogDao(): BrumasiLogDao
-    abstract fun uvbBasingLogDao(): UvbBasingLogDao
-    abstract fun dietLogDao(): DietLogDao
-    abstract fun healthRecordDao(): HealthRecordDao
+//    abstract fun uvbBasingLogDao(): UvbBasingLogDao
+//    abstract fun dietLogDao(): DietLogDao
+//    abstract fun healthRecordDao(): HealthRecordDao
     abstract fun scutePhotoDao(): ScutePhotoDao
     abstract fun riwayatDao(): RiwayatDao
     abstract fun riwayatPhotoDao(): RiwayatPhotoDao

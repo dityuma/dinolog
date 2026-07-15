@@ -56,8 +56,6 @@ fun AddReptileScreen(
     )
 ) {
     val context = LocalContext.current
-    val snackbarHostState = remember { SnackbarHostState() }
-    val scope = rememberCoroutineScope()
 
     var name by remember { mutableStateOf("") }
     var species by remember { mutableStateOf("") }
@@ -107,7 +105,6 @@ fun AddReptileScreen(
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text("Tambah Reptil") },
@@ -328,14 +325,8 @@ fun AddReptileScreen(
                             acquireDate = acquireDate,
                             profilePhotoUri = profilePhotoUri
                         )
-                        scope.launch {
-                            viewModel.addReptile(reptile)
-                            snackbarHostState.showSnackbar(
-                                message = "Kura-kura berhasil ditambahkan 🐢",
-                                duration = SnackbarDuration.Short
-                            )
-                            onNavigateBack()
-                        }
+                        viewModel.addReptile(reptile)
+                        onNavigateBack()
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),

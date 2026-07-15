@@ -193,29 +193,29 @@ interface ScutePhotoDao {
 // ─────────────────────────────────────────────
 // SoakingLogDao (PRD v3)
 // ─────────────────────────────────────────────
-@Dao
-interface SoakingLogDao {
-    @Query("SELECT * FROM soaking_logs WHERE reptileId = :reptileId ORDER BY soakingDate DESC")
-    fun getSoakingLogsForReptile(reptileId: Long): Flow<List<SoakingLogEntity>>
+//@Dao
+//interface SoakingLogDao {
+//    @Query("SELECT * FROM soaking_logs WHERE reptileId = :reptileId ORDER BY soakingDate DESC")
+//    fun getSoakingLogsForReptile(reptileId: Long): Flow<List<SoakingLogEntity>>
 
-    @Query("SELECT * FROM soaking_logs WHERE reptileId = :reptileId ORDER BY soakingDate DESC LIMIT 1")
-    suspend fun getLastSoaking(reptileId: Long): SoakingLogEntity?
+//    @Query("SELECT * FROM soaking_logs WHERE reptileId = :reptileId ORDER BY soakingDate DESC LIMIT 1")
+//    suspend fun getLastSoaking(reptileId: Long): SoakingLogEntity?
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertSoakingLog(log: SoakingLogEntity): Long
+//    @Insert(onConflict = OnConflictStrategy.REPLACE)
+//    suspend fun insertSoakingLog(log: SoakingLogEntity): Long
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertSoakingLogs(logs: List<SoakingLogEntity>)
+//    @Insert(onConflict = OnConflictStrategy.REPLACE)
+//    suspend fun insertSoakingLogs(logs: List<SoakingLogEntity>)
 
-    @Update
-    suspend fun updateSoakingLog(log: SoakingLogEntity)
+//    @Update
+//    suspend fun updateSoakingLog(log: SoakingLogEntity)
 
-    @Delete
-    suspend fun deleteSoakingLog(log: SoakingLogEntity)
+//    @Delete
+//    suspend fun deleteSoakingLog(log: SoakingLogEntity)
 
-    @Query("SELECT * FROM soaking_logs WHERE reptileId = :reptileId")
-    suspend fun getSoakingLogsForReptileSync(reptileId: Long): List<SoakingLogEntity>
-}
+//    @Query("SELECT * FROM soaking_logs WHERE reptileId = :reptileId")
+//    suspend fun getSoakingLogsForReptileSync(reptileId: Long): List<SoakingLogEntity>
+//}
 
 // ─────────────────────────────────────────────
 // BrumasiLogDao (PRD v3)
@@ -247,79 +247,79 @@ interface BrumasiLogDao {
 // ─────────────────────────────────────────────
 // UvbBasingLogDao (PRD v3)
 // ─────────────────────────────────────────────
-@Dao
-interface UvbBasingLogDao {
-    @Query("SELECT * FROM uvb_basing_logs WHERE reptileId = :reptileId ORDER BY sessionDate DESC")
-    fun getUvbLogsForReptile(reptileId: Long): Flow<List<UvbBasingLogEntity>>
+//@Dao
+//interface UvbBasingLogDao {
+//    @Query("SELECT * FROM uvb_basing_logs WHERE reptileId = :reptileId ORDER BY sessionDate DESC")
+//    fun getUvbLogsForReptile(reptileId: Long): Flow<List<UvbBasingLogEntity>>
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertUvbLog(log: UvbBasingLogEntity): Long
+//    @Insert(onConflict = OnConflictStrategy.REPLACE)
+//    suspend fun insertUvbLog(log: UvbBasingLogEntity): Long
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertUvbLogs(logs: List<UvbBasingLogEntity>)
+//    @Insert(onConflict = OnConflictStrategy.REPLACE)
+//    suspend fun insertUvbLogs(logs: List<UvbBasingLogEntity>)
 
-    @Update
-    suspend fun updateUvbLog(log: UvbBasingLogEntity)
+//    @Update
+//    suspend fun updateUvbLog(log: UvbBasingLogEntity)
 
-    @Delete
-    suspend fun deleteUvbLog(log: UvbBasingLogEntity)
+//    @Delete
+//    suspend fun deleteUvbLog(log: UvbBasingLogEntity)
 
-    @Query("SELECT * FROM uvb_basing_logs WHERE reptileId = :reptileId")
-    suspend fun getUvbLogsForReptileSync(reptileId: Long): List<UvbBasingLogEntity>
-}
+//    @Query("SELECT * FROM uvb_basing_logs WHERE reptileId = :reptileId")
+//    suspend fun getUvbLogsForReptileSync(reptileId: Long): List<UvbBasingLogEntity>
+//}
 
 // ─────────────────────────────────────────────
 // DietLogDao (PRD v3)
 // ─────────────────────────────────────────────
-@Dao
-interface DietLogDao {
-    @Query("SELECT * FROM diet_logs WHERE reptileId = :reptileId ORDER BY recordedAt DESC")
-    fun getDietLogsForReptile(reptileId: Long): Flow<List<DietLogEntity>>
-
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertDietLog(log: DietLogEntity): Long
-
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertDietLogs(logs: List<DietLogEntity>)
-
-    @Update
-    suspend fun updateDietLog(log: DietLogEntity)
-
-    @Delete
-    suspend fun deleteDietLog(log: DietLogEntity)
-
-    @Query("SELECT * FROM diet_logs WHERE reptileId = :reptileId")
-    suspend fun getDietLogsForReptileSync(reptileId: Long): List<DietLogEntity>
-}
+//@Dao
+//interface DietLogDao {
+//    @Query("SELECT * FROM diet_logs WHERE reptileId = :reptileId ORDER BY recordedAt DESC")
+//    fun getDietLogsForReptile(reptileId: Long): Flow<List<DietLogEntity>>
+//
+//    @Insert(onConflict = OnConflictStrategy.REPLACE)
+//    suspend fun insertDietLog(log: DietLogEntity): Long
+//
+//    @Insert(onConflict = OnConflictStrategy.REPLACE)
+//    suspend fun insertDietLogs(logs: List<DietLogEntity>)
+//
+//    @Update
+//    suspend fun updateDietLog(log: DietLogEntity)
+//
+//    @Delete
+//    suspend fun deleteDietLog(log: DietLogEntity)
+//
+//    @Query("SELECT * FROM diet_logs WHERE reptileId = :reptileId")
+//    suspend fun getDietLogsForReptileSync(reptileId: Long): List<DietLogEntity>
+//}
 
 // ─────────────────────────────────────────────
 // HealthRecordDao
 // ─────────────────────────────────────────────
-@Dao
-interface HealthRecordDao {
-
-    @Query("SELECT * FROM health_records WHERE reptileId = :reptileId ORDER BY date DESC")
-    fun getHealthRecordsForReptile(reptileId: Long): Flow<List<HealthRecordEntity>>
-
-    // Untuk reminder — ambil semua record yang punya nextReminderAt di masa depan
-    @Query("SELECT * FROM health_records WHERE nextReminderAt IS NOT NULL AND nextReminderAt > :now")
-    suspend fun getPendingReminders(now: Long = System.currentTimeMillis()): List<HealthRecordEntity>
-
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertHealthRecord(record: HealthRecordEntity): Long
-
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertHealthRecords(records: List<HealthRecordEntity>)
-
-    @Update
-    suspend fun updateHealthRecord(record: HealthRecordEntity)
-
-    @Delete
-    suspend fun deleteHealthRecord(record: HealthRecordEntity)
-
-    @Query("SELECT * FROM health_records WHERE reptileId = :reptileId")
-    suspend fun getHealthRecordsForReptileSync(reptileId: Long): List<HealthRecordEntity>
-}
+//@Dao
+//interface HealthRecordDao {
+//
+//    @Query("SELECT * FROM health_records WHERE reptileId = :reptileId ORDER BY date DESC")
+//    fun getHealthRecordsForReptile(reptileId: Long): Flow<List<HealthRecordEntity>>
+//
+//    // Untuk reminder — ambil semua record yang punya nextReminderAt di masa depan
+//    @Query("SELECT * FROM health_records WHERE nextReminderAt IS NOT NULL AND nextReminderAt > :now")
+//    suspend fun getPendingReminders(now: Long = System.currentTimeMillis()): List<HealthRecordEntity>
+//
+//    @Insert(onConflict = OnConflictStrategy.REPLACE)
+//    suspend fun insertHealthRecord(record: HealthRecordEntity): Long
+//
+//    @Insert(onConflict = OnConflictStrategy.REPLACE)
+//    suspend fun insertHealthRecords(records: List<HealthRecordEntity>)
+//
+//    @Update
+//    suspend fun updateHealthRecord(record: HealthRecordEntity)
+//
+//    @Delete
+//    suspend fun deleteHealthRecord(record: HealthRecordEntity)
+//
+//    @Query("SELECT * FROM health_records WHERE reptileId = :reptileId")
+//    suspend fun getHealthRecordsForReptileSync(reptileId: Long): List<HealthRecordEntity>
+//}
 
 // ─────────────────────────────────────────────
 // RiwayatDao

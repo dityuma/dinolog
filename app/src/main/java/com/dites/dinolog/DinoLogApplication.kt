@@ -38,11 +38,7 @@ class DinoLogApplication : Application() {
             database.growthPhotoDao(),
             database.feedingLogDao(),
             database.scuteLogDao(),
-            database.soakingLogDao(),
             database.brumasiLogDao(),
-            database.uvbBasingLogDao(),
-            database.dietLogDao(),
-            database.healthRecordDao(),
             database.scutePhotoDao(),
             database.riwayatDao(),
             database.riwayatPhotoDao()

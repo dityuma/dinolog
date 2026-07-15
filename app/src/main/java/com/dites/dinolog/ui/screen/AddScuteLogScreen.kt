@@ -58,8 +58,6 @@ fun AddScuteLogScreen(
     )
 ) {
     val context = LocalContext.current
-    val snackbarHostState = remember { SnackbarHostState() }
-    val scope = rememberCoroutineScope()
 
     var recordedAt by remember { mutableStateOf(System.currentTimeMillis()) }
     var condition by remember { mutableStateOf("NORMAL") }
@@ -114,7 +112,6 @@ fun AddScuteLogScreen(
     )
 
     Scaffold(
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text("Tambah Kondisi Karapas") },
@@ -293,19 +290,16 @@ fun AddScuteLogScreen(
 
             Button(
                 onClick = {
-                    scope.launch {
-                        viewModel.addScuteLog(
-                            ScuteLogEntity(
-                                reptileId = reptileId,
-                                recordedAt = recordedAt,
-                                condition = condition,
-                                notes = notes
-                            ),
-                            photoUris.toList()
-                        )
-                        snackbarHostState.showSnackbar("Catatan karapas berhasil disimpan")
-                        onNavigateBack()
-                    }
+                    viewModel.addScuteLog(
+                        ScuteLogEntity(
+                            reptileId = reptileId,
+                            recordedAt = recordedAt,
+                            condition = condition,
+                            notes = notes
+                        ),
+                        photoUris.toList()
+                    )
+                    onNavigateBack()
                 },
                 modifier = Modifier.fillMaxWidth()
             ) {

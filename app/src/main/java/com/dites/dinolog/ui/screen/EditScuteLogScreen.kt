@@ -60,8 +60,6 @@ fun EditScuteLogScreen(
     )
 ) {
     val context = LocalContext.current
-    val snackbarHostState = remember { SnackbarHostState() }
-    val scope = rememberCoroutineScope()
     val scuteLogs by viewModel.scuteLogs.collectAsStateWithLifecycle()
     val log = scuteLogs.find { it.id == logId }
     val existingPhotos by viewModel.getPhotosForScuteLog(logId).collectAsStateWithLifecycle(initialValue = emptyList())
@@ -129,7 +127,6 @@ fun EditScuteLogScreen(
     )
 
     Scaffold(
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text("Edit Kondisi Karapas") },
@@ -371,23 +368,20 @@ fun EditScuteLogScreen(
             Button(
                 onClick = {
                     log?.let { current ->
-                        scope.launch {
-                            viewModel.updateScuteLog(
-                                current.copy(
-                                    recordedAt = recordedAt,
-                                    condition = condition,
-                                    notes = notes
-                                )
+                        viewModel.updateScuteLog(
+                            current.copy(
+                                recordedAt = recordedAt,
+                                condition = condition,
+                                notes = notes
                             )
-                            // Handle photo changes
-                            photosToDelete.forEach { viewModel.deleteScutePhoto(it) }
-                            if (newPhotoUris.isNotEmpty()) {
-                                val newPhotos = newPhotoUris.map { ScutePhotoEntity(scuteLogId = logId, photoUri = it) }
-                                viewModel.addScutePhotos(newPhotos)
-                            }
-                            snackbarHostState.showSnackbar("Catatan karapas berhasil diperbarui")
-                            onNavigateBack()
+                        )
+                        // Handle photo changes
+                        photosToDelete.forEach { viewModel.deleteScutePhoto(it) }
+                        if (newPhotoUris.isNotEmpty()) {
+                            val newPhotos = newPhotoUris.map { ScutePhotoEntity(scuteLogId = logId, photoUri = it) }
+                            viewModel.addScutePhotos(newPhotos)
                         }
+                        onNavigateBack()
                     }
                 },
                 modifier = Modifier.fillMaxWidth()

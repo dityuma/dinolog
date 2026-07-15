@@ -30,9 +30,6 @@ fun EditFeedingLogScreen(
         factory = ReptileDetailViewModelFactory(repository, reptileId)
     )
 ) {
-    val snackbarHostState = remember { SnackbarHostState() }
-    val scope = rememberCoroutineScope()
-
     val feedingLogs by viewModel.feedingLogs.collectAsState()
     val log = feedingLogs.find { it.id == logId }
 
@@ -58,7 +55,6 @@ fun EditFeedingLogScreen(
     )
 
     Scaffold(
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text("Edit Catatan Makan") },
@@ -143,19 +139,16 @@ fun EditFeedingLogScreen(
             Button(
                 onClick = {
                     log?.let { current ->
-                        scope.launch {
-                            viewModel.updateFeedingLog(
-                                current.copy(
-                                    feedingDate = feedingDate,
-                                    foodType = foodType,
-                                    foodAmount = foodAmount,
-                                    notes = notes,
-                                    accepted = true
-                                )
+                        viewModel.updateFeedingLog(
+                            current.copy(
+                                feedingDate = feedingDate,
+                                foodType = foodType,
+                                foodAmount = foodAmount,
+                                notes = notes,
+                                accepted = true
                             )
-                            snackbarHostState.showSnackbar("Catatan makan berhasil diperbarui")
-                            onNavigateBack()
-                        }
+                        )
+                        onNavigateBack()
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),

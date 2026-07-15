@@ -32,9 +32,6 @@ fun EditBrumasiLogScreen(
         factory = TortoiseCareViewModelFactory(repository, reptileId)
     )
 ) {
-    val snackbarHostState = remember { SnackbarHostState() }
-    val scope = rememberCoroutineScope()
-
     val brumasiLogs by viewModel.brumasiLogs.collectAsState()
     val log = brumasiLogs.find { it.id == logId }
 
@@ -63,7 +60,6 @@ fun EditBrumasiLogScreen(
     var showEndDatePicker by remember { mutableStateOf(false) }
 
     Scaffold(
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text("Edit Catatan Brumasi") },
@@ -154,19 +150,16 @@ fun EditBrumasiLogScreen(
             Button(
                 onClick = {
                     log?.let { current ->
-                        scope.launch {
-                            viewModel.updateBrumasiLog(
-                                current.copy(
-                                    startDate = startDate,
-                                    endDate = if (isOngoing) null else endDate,
-                                    weightBeforeGrams = weightBeforeGrams.toFloatOrNull(),
-                                    weightAfterGrams = weightAfterGrams.toFloatOrNull(),
-                                    notes = notes
-                                )
+                        viewModel.updateBrumasiLog(
+                            current.copy(
+                                startDate = startDate,
+                                endDate = if (isOngoing) null else endDate,
+                                weightBeforeGrams = weightBeforeGrams.toFloatOrNull(),
+                                weightAfterGrams = weightAfterGrams.toFloatOrNull(),
+                                notes = notes
                             )
-                            snackbarHostState.showSnackbar("Catatan brumasi berhasil diperbarui")
-                            onNavigateBack()
-                        }
+                        )
+                        onNavigateBack()
                     }
                 },
                 modifier = Modifier.fillMaxWidth()

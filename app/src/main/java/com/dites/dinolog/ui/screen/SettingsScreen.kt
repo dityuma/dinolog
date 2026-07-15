@@ -49,8 +49,6 @@ fun SettingsScreen(
     val context = LocalContext.current
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
     val selectedTheme by viewModel.selectedTheme.collectAsStateWithLifecycle(initialValue = ThemePreference.DEFAULT_THEME)
-    val snackbarHostState = remember { SnackbarHostState() }
-    val scope = rememberCoroutineScope()
 
     var showImportDialog by remember { mutableStateOf(false) }
     var selectedUri by remember { mutableStateOf<Uri?>(null) }
@@ -66,7 +64,6 @@ fun SettingsScreen(
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
-        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text("Pengaturan") },
@@ -101,14 +98,10 @@ fun SettingsScreen(
                     onClick = {
                         viewModel.exportData(
                             onSuccess = { fileName ->
-                                scope.launch {
-                                    snackbarHostState.showSnackbar("✓ Data berhasil diekspor ke folder Downloads: $fileName")
-                                }
+                                // Success
                             },
                             onError = {
-                                scope.launch {
-                                    snackbarHostState.showSnackbar("Export gagal. Coba lagi.")
-                                }
+                                // Error
                             }
                         )
                     }
@@ -199,14 +192,10 @@ fun SettingsScreen(
                             viewModel.importData(
                                 uri = uri,
                                 onSuccess = {
-                                    scope.launch {
-                                        snackbarHostState.showSnackbar("✓ Data berhasil diimpor")
-                                    }
+                                    // Success
                                 },
                                 onError = {
-                                    scope.launch {
-                                        snackbarHostState.showSnackbar("Import gagal. Pastikan file JSON valid.")
-                                    }
+                                    // Error
                                 }
                             )
                         }

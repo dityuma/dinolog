@@ -3,15 +3,20 @@
 # Keep Room entities
 -keep class com.dites.dinolog.data.local.entity.** { *; }
 
-# Keep Gson serialization
--keep class com.dites.dinolog.data.repository.** { *; }
--keepattributes Signature
+# Keep all data classes used for Gson serialization
+-keep class com.dites.dinolog.data.local.entity.ReptileEntity { *; }
+-keep class com.dites.dinolog.data.local.entity.FeedingLogEntity { *; }
+-keep class com.dites.dinolog.data.local.entity.BrumasiLogEntity { *; }
+
+# Keep backup data classes (wherever they are defined)
+-keepclassmembers class * {
+    @com.google.gson.annotations.SerializedName <fields>;
+}
+
+# Keep Gson annotations
 -keepattributes *Annotation*
--dontwarn sun.misc.**
+-keepattributes Signature
 -keep class com.google.gson.** { *; }
--keep class * implements com.google.gson.TypeAdapterFactory
--keep class * implements com.google.gson.JsonSerializer
--keep class * implements com.google.gson.JsonDeserializer
 
 # Keep Coil
 -dontwarn okhttp3.**

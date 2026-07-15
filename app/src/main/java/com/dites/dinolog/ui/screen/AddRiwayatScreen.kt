@@ -57,8 +57,6 @@ fun AddRiwayatScreen(
     )
 ) {
     val context = LocalContext.current
-    val snackbarHostState = remember { SnackbarHostState() }
-    val scope = rememberCoroutineScope()
 
     var illnessName by remember { mutableStateOf("") }
     var notes by remember { mutableStateOf("") }
@@ -111,7 +109,6 @@ fun AddRiwayatScreen(
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text("Tambah Riwayat Sakit") },
@@ -317,21 +314,18 @@ fun AddRiwayatScreen(
 
             Button(
                 onClick = {
-                    scope.launch {
-                        viewModel.addRiwayatWithPhotos(
-                            RiwayatEntity(
-                                reptileId = reptileId,
-                                illnessName = illnessName,
-                                notes = notes,
-                                startDate = startDate,
-                                isOngoing = isOngoing,
-                                endDate = if (isOngoing) null else endDate
-                            ),
-                            photoUris.toList()
-                        )
-                        snackbarHostState.showSnackbar("Riwayat sakit berhasil disimpan")
-                        onNavigateBack()
-                    }
+                    viewModel.addRiwayatWithPhotos(
+                        RiwayatEntity(
+                            reptileId = reptileId,
+                            illnessName = illnessName,
+                            notes = notes,
+                            startDate = startDate,
+                            isOngoing = isOngoing,
+                            endDate = if (isOngoing) null else endDate
+                        ),
+                        photoUris.toList()
+                    )
+                    onNavigateBack()
                 },
                 modifier = Modifier.fillMaxWidth(),
                 enabled = illnessName.isNotBlank(),

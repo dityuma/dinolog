@@ -53,8 +53,6 @@ fun EditReptileScreen(
     )
 ) {
     val context = LocalContext.current
-    val snackbarHostState = remember { SnackbarHostState() }
-    val scope = rememberCoroutineScope()
     val reptile by viewModel.reptile.collectAsStateWithLifecycle()
 
     var name by remember { mutableStateOf("") }
@@ -116,7 +114,6 @@ fun EditReptileScreen(
     var showAcquireDatePicker by remember { mutableStateOf(false) }
 
     Scaffold(
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text("Edit Kura-kura") },
@@ -283,20 +280,17 @@ fun EditReptileScreen(
                 onClick = {
                     if (name.isNotBlank() && species.isNotBlank()) {
                         reptile?.let { current ->
-                            scope.launch {
-                                viewModel.updateReptile(
-                                    current.copy(
-                                        name = name,
-                                        species = species,
-                                        gender = gender,
-                                        birthDate = birthDate,
-                                        acquireDate = acquireDate,
-                                        profilePhotoUri = profilePhotoUri
-                                    )
+                            viewModel.updateReptile(
+                                current.copy(
+                                    name = name,
+                                    species = species,
+                                    gender = gender,
+                                    birthDate = birthDate,
+                                    acquireDate = acquireDate,
+                                    profilePhotoUri = profilePhotoUri
                                 )
-                                snackbarHostState.showSnackbar("Data kura-kura berhasil diperbarui")
-                                onNavigateBack()
-                            }
+                            )
+                            onNavigateBack()
                         }
                     }
                 },
